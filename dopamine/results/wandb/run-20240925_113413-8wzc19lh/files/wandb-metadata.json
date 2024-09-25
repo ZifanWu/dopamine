@@ -1,0 +1,169 @@
+{
+    "os": "Linux-6.8.0-40-generic-x86_64-with-glibc2.35",
+    "python": "3.10.0",
+    "heartbeatAt": "2024-09-25T17:34:13.692221",
+    "startedAt": "2024-09-25T17:34:13.144916",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--base_dir",
+        "/tmp",
+        "--gin_files",
+        "dopamine/labs/redo/configs/dqn_dense.gin"
+    ],
+    "state": "running",
+    "program": "-m dopamine.labs.redo.train",
+    "git": {
+        "remote": "https://github.com/google/dopamine",
+        "commit": "4552f69af4763053d87ee4ce6d3da59ca3232f3c"
+    },
+    "email": "wuzf5@mail2.sysu.edu.cn",
+    "root": "/home/zifan/dopamine",
+    "host": "eric-brown-lab",
+    "username": "zifan",
+    "executable": "/home/zifan/miniconda3/envs/redo/bin/python",
+    "cpu_count": 16,
+    "cpu_count_logical": 24,
+    "cpu_freq": {
+        "current": 934.3801666666667,
+        "min": 800.0,
+        "max": 4716.666666666667
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5200.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5200.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5200.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5200.0
+        },
+        {
+            "current": 1045.818,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 5100.0
+        },
+        {
+            "current": 803.881,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 861.793,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 1128.865,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 803.551,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 1399.355,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 1665.324,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 1377.5,
+            "min": 800.0,
+            "max": 3900.0
+        },
+        {
+            "current": 800.0,
+            "min": 800.0,
+            "max": 3900.0
+        }
+    ],
+    "disk": {
+        "total": 2749.074417114258,
+        "used": 354.0942077636719
+    },
+    "gpu": "NVIDIA GeForce RTX 3090",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 3090",
+            "memory_total": 25769803776
+        }
+    ],
+    "memory": {
+        "total": 62.60737228393555
+    }
+}

@@ -44,7 +44,60 @@ import gin
 import numpy as np
 import tensorflow as tf
 import tqdm.auto as tqdm
+import socket
+from pathlib import Path
+import os
+import re
 
+
+def parse_gin_file(file_path):
+  config_dict = {}
+  with open(file_path, 'r') as file:
+      for line in file:
+          line = line.strip()
+          if line and not line.startswith('#') and not line.startswith('import'):
+              # Split the line into key and value
+              parts = line.split('=', 1)
+              if len(parts) == 2:
+                  key = parts[0].strip()
+                  value = parts[1].strip()
+                  
+                  # Remove quotes from string values
+                  value = re.sub(r'^[\'"]|[\'"]$', '', value)
+                  
+                  # Convert to appropriate type if possible
+                  try:
+                      value = eval(value)
+                  except:
+                      pass
+                  
+                  config_dict[key] = value
+  return config_dict
+
+gin_file_paths = ['./dopamine/labs/redo/configs/dqn_dense.gin', './dopamine/jax/agents/dqn/configs/dqn.gin']
+config = {}
+for path in gin_file_paths:
+  config = {**config, **parse_gin_file(path)}
+# config = parse_gin_file(gin_file_path)
+print(config)
+run_dir = Path(os.path.split(os.path.dirname(os.path.abspath(__file__)))[0] + "/results")
+if not run_dir.exists():
+  os.makedirs(str(run_dir))
+import numpy as np
+rnd_num = np.random.randint(0, 100000, size=1)[0]
+if config['use_wandb']:
+  import wandb
+  wandb.init(config=config,
+            project='dormant-neuron',
+            entity='zarzard',
+            notes=socket.gethostname(),
+            name= str(rnd_num),
+            dir=str(run_dir),
+            job_type="training",
+            reinit=True,
+            sync_tensorboard=True,
+            monitor_gym=True,
+            save_code=True)
 
 def load_gin_configs(gin_files, gin_bindings):
   """Loads gin configuration files.
@@ -326,26 +379,26 @@ class Runner(object):
     self._start_iteration = 0
     # Check if checkpoint exists. Note that the existence of checkpoint 0 means
     # that we have finished iteration 0 (so we will start from iteration 1).
-    latest_checkpoint_version = checkpointer.get_latest_checkpoint_number(
-        self._checkpoint_dir
-    )
-    if latest_checkpoint_version >= 0:
-      experiment_data = self._checkpointer.load_checkpoint(
-          latest_checkpoint_version
-      )
-      if self._agent.unbundle(
-          self._checkpoint_dir, latest_checkpoint_version, experiment_data
-      ):
-        if experiment_data is not None:
-          assert 'logs' in experiment_data
-          assert 'current_iteration' in experiment_data
-          if self._use_legacy_logger:
-            self._logger.data = experiment_data['logs']
-          self._start_iteration = experiment_data['current_iteration'] + 1
-        logging.info(
-            'Reloaded checkpoint and will start from iteration %d',
-            self._start_iteration,
-        )
+    # latest_checkpoint_version = checkpointer.get_latest_checkpoint_number(
+    #     self._checkpoint_dir
+    # )
+    # if latest_checkpoint_version >= 0:
+    #   experiment_data = self._checkpointer.load_checkpoint(
+    #       latest_checkpoint_version
+    #   )
+    #   if self._agent.unbundle(
+    #       self._checkpoint_dir, latest_checkpoint_version, experiment_data
+    #   ):
+    #     if experiment_data is not None:
+    #       assert 'logs' in experiment_data
+    #       assert 'current_iteration' in experiment_data
+    #       if self._use_legacy_logger:
+    #         self._logger.data = experiment_data['logs']
+    #       self._start_iteration = experiment_data['current_iteration'] + 1
+    #     logging.info(
+    #         'Reloaded checkpoint and will start from iteration %d',
+    #         self._start_iteration,
+    #     )
 
   def _initialize_episode(self):
     """Initialization for a new episode.
@@ -460,6 +513,8 @@ class Runner(object):
             + 'Episode length: {} '.format(episode_length)
             + 'Return: {}\r'.format(episode_return)
         )
+        if config['use_wandb']: # NOTE wandb logging
+          wandb.log({'train_epis_ret': episode_return, 'env_step': step_count+self.total_env_step})
         sys.stdout.flush()
     return step_count, sum_returns, num_episodes
 
@@ -478,9 +533,11 @@ class Runner(object):
     # Perform the training phase, during which the agent learns.
     self._agent.eval_mode = False
     start_time = time.time()
+    self.total_env_step = 0 # NOTE added total_env_step
     number_steps, sum_returns, num_episodes = self._run_one_phase(
         self._training_steps, statistics, 'train'
     )
+    self.total_env_step += number_steps # NOTE added total_env_step
     average_return = sum_returns / num_episodes if num_episodes > 0 else 0.0
     statistics.append({'train_average_return': average_return})
     time_delta = time.time() - start_time
@@ -518,6 +575,8 @@ class Runner(object):
         average_return,
     )
     statistics.append({'eval_average_return': average_return})
+    if config['use_wandb']: # NOTE wandb logging
+      wandb.log({'eval_average_ret': average_return, 'env_step': self.total_env_step})
     return num_episodes, average_return
 
   def _run_one_iteration(self, iteration):
@@ -660,7 +719,7 @@ class Runner(object):
       experiment_data['current_iteration'] = iteration
       if self._use_legacy_logger:
         experiment_data['logs'] = self._logger.data
-      self._checkpointer.save_checkpoint(iteration, experiment_data)
+      # self._checkpointer.save_checkpoint(iteration, experiment_data)
 
   def run_experiment(self):
     """Runs a full experiment, spread over multiple iterations."""

@@ -1,0 +1,177 @@
+2024-09-25 11:42:23,395 INFO    StreamThr :775210 [internal.py:wandb_internal():87] W&B internal server running at pid: 775210, started at: 2024-09-25 11:42:23.394941
+2024-09-25 11:42:23,396 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: status
+2024-09-25 11:42:23,422 INFO    WriterThread:775210 [datastore.py:open_for_write():85] open: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/run-ol9r296h.wandb
+2024-09-25 11:42:23,422 DEBUG   SenderThread:775210 [sender.py:send():336] send: header
+2024-09-25 11:42:23,424 DEBUG   SenderThread:775210 [sender.py:send():336] send: run
+2024-09-25 11:42:23,817 INFO    SenderThread:775210 [dir_watcher.py:__init__():219] watching files in: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files
+2024-09-25 11:42:23,817 INFO    SenderThread:775210 [sender.py:_start_run_threads():1078] run started: ol9r296h with start time 1727286143.396044
+2024-09-25 11:42:23,848 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:23,848 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:23,849 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: check_version
+2024-09-25 11:42:23,850 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: check_version
+2024-09-25 11:42:23,953 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: run_start
+2024-09-25 11:42:23,966 DEBUG   HandlerThread:775210 [system_info.py:__init__():31] System info init
+2024-09-25 11:42:23,966 DEBUG   HandlerThread:775210 [system_info.py:__init__():46] System info init done
+2024-09-25 11:42:23,966 INFO    HandlerThread:775210 [system_monitor.py:start():183] Starting system monitor
+2024-09-25 11:42:23,967 INFO    SystemMonitor:775210 [system_monitor.py:_start():147] Starting system asset monitoring threads
+2024-09-25 11:42:23,967 INFO    HandlerThread:775210 [system_monitor.py:probe():204] Collecting system info
+2024-09-25 11:42:23,968 INFO    SystemMonitor:775210 [interfaces.py:start():187] Started cpu monitoring
+2024-09-25 11:42:23,969 INFO    SystemMonitor:775210 [interfaces.py:start():187] Started disk monitoring
+2024-09-25 11:42:23,970 INFO    SystemMonitor:775210 [interfaces.py:start():187] Started gpu monitoring
+2024-09-25 11:42:23,972 INFO    SystemMonitor:775210 [interfaces.py:start():187] Started memory monitoring
+2024-09-25 11:42:23,974 INFO    SystemMonitor:775210 [interfaces.py:start():187] Started network monitoring
+2024-09-25 11:42:23,985 DEBUG   HandlerThread:775210 [system_info.py:probe():195] Probing system
+2024-09-25 11:42:23,989 DEBUG   HandlerThread:775210 [system_info.py:_probe_git():180] Probing git
+2024-09-25 11:42:24,004 DEBUG   HandlerThread:775210 [system_info.py:_probe_git():188] Probing git done
+2024-09-25 11:42:24,004 DEBUG   HandlerThread:775210 [system_info.py:probe():240] Probing system done
+2024-09-25 11:42:24,004 DEBUG   HandlerThread:775210 [system_monitor.py:probe():213] {'os': 'Linux-6.8.0-40-generic-x86_64-with-glibc2.35', 'python': '3.10.0', 'heartbeatAt': '2024-09-25T17:42:23.985859', 'startedAt': '2024-09-25T17:42:23.386528', 'docker': None, 'cuda': None, 'args': ('--base_dir', '/tmp', '--gin_files', 'dopamine/labs/redo/configs/dqn_dense.gin'), 'state': 'running', 'program': '-m dopamine.labs.redo.train', 'git': {'remote': 'https://github.com/google/dopamine', 'commit': '4552f69af4763053d87ee4ce6d3da59ca3232f3c'}, 'email': 'wuzf5@mail2.sysu.edu.cn', 'root': '/home/zifan/dopamine', 'host': 'eric-brown-lab', 'username': 'zifan', 'executable': '/home/zifan/miniconda3/envs/redo/bin/python', 'cpu_count': 16, 'cpu_count_logical': 24, 'cpu_freq': {'current': 875.38375, 'min': 800.0, 'max': 4716.666666666667}, 'cpu_freq_per_core': [{'current': 799.654, 'min': 800.0, 'max': 5100.0}, {'current': 801.354, 'min': 800.0, 'max': 5100.0}, {'current': 800.282, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1141.31, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1169.245, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1441.573, 'min': 800.0, 'max': 5200.0}, {'current': 800.0, 'min': 800.0, 'max': 5200.0}, {'current': 806.708, 'min': 800.0, 'max': 5200.0}, {'current': 800.0, 'min': 800.0, 'max': 5200.0}, {'current': 1217.888, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 804.971, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 799.581, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 801.552, 'min': 800.0, 'max': 3900.0}, {'current': 799.441, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}], 'disk': {'total': 2749.074417114258, 'used': 354.0948486328125}, 'gpu': 'NVIDIA GeForce RTX 3090', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.60737228393555}}
+2024-09-25 11:42:24,005 INFO    HandlerThread:775210 [system_monitor.py:probe():214] Finished collecting system info
+2024-09-25 11:42:24,005 INFO    HandlerThread:775210 [system_monitor.py:probe():217] Publishing system info
+2024-09-25 11:42:24,005 DEBUG   HandlerThread:775210 [system_info.py:_save_pip():51] Saving list of pip packages installed into the current environment
+2024-09-25 11:42:24,006 DEBUG   HandlerThread:775210 [system_info.py:_save_pip():67] Saving pip packages done
+2024-09-25 11:42:24,006 DEBUG   HandlerThread:775210 [system_info.py:_save_conda():74] Saving list of conda packages installed into the current environment
+2024-09-25 11:42:24,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/requirements.txt
+2024-09-25 11:42:24,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:24,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/conda-environment.yaml
+2024-09-25 11:42:24,864 DEBUG   HandlerThread:775210 [system_info.py:_save_conda():86] Saving conda packages done
+2024-09-25 11:42:24,864 DEBUG   HandlerThread:775210 [system_info.py:_save_code():89] Saving code
+2024-09-25 11:42:24,864 WARNING HandlerThread:775210 [system_info.py:_save_code():91] unable to save code -- program entry not found
+2024-09-25 11:42:24,865 DEBUG   HandlerThread:775210 [system_info.py:_save_patches():127] Saving git patches
+2024-09-25 11:42:24,876 DEBUG   HandlerThread:775210 [system_info.py:_save_patches():169] Saving git patches done
+2024-09-25 11:42:24,877 INFO    HandlerThread:775210 [system_monitor.py:probe():219] Finished publishing system info
+2024-09-25 11:42:24,879 DEBUG   SenderThread:775210 [sender.py:send():336] send: files
+2024-09-25 11:42:24,879 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-metadata.json with policy now
+2024-09-25 11:42:24,879 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file diff.patch with policy now
+2024-09-25 11:42:24,882 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: stop_status
+2024-09-25 11:42:24,882 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: stop_status
+2024-09-25 11:42:25,099 DEBUG   SenderThread:775210 [sender.py:send():336] send: telemetry
+2024-09-25 11:42:25,268 INFO    wandb-upload_1:775210 [upload_job.py:push():138] Uploaded file /tmp/tmp9vowg5yrwandb/6ase3avb-diff.patch
+2024-09-25 11:42:25,349 INFO    wandb-upload_0:775210 [upload_job.py:push():138] Uploaded file /tmp/tmp9vowg5yrwandb/43kvwelt-wandb-metadata.json
+2024-09-25 11:42:25,817 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/conda-environment.yaml
+2024-09-25 11:42:25,817 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:25,817 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/diff.patch
+2024-09-25 11:42:25,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-metadata.json
+2024-09-25 11:42:27,690 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:27,692 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:27,692 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:27,692 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:27,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:27,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:28,692 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: status_report
+2024-09-25 11:42:29,170 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:29,171 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:29,171 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:29,171 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:29,777 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:29,777 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:29,777 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:29,777 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:29,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:29,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:29,934 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:29,934 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:29,934 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:29,935 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:30,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:31,031 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:31,031 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:31,032 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:31,032 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:31,623 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:31,623 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:31,623 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:31,624 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:31,818 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:31,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:32,063 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:32,064 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:32,064 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:32,064 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:32,341 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:32,342 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:32,342 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:32,342 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:32,792 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:32,793 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:32,793 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:32,793 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:32,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:33,227 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:33,227 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:33,227 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:33,227 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:33,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:33,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:34,228 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: status_report
+2024-09-25 11:42:34,237 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:34,237 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:34,237 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:34,237 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:34,541 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:34,541 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:34,541 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:34,541 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:34,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:35,253 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:35,254 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:35,254 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:35,254 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:35,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:35,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:35,834 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:35,835 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:35,835 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:35,835 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:36,062 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:36,062 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:36,062 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:36,062 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:36,641 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:36,641 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:36,641 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:36,641 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:36,819 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:37,046 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:37,047 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:37,047 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:37,047 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:37,361 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:37,361 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:37,361 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:37,361 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:37,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:37,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:38,711 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:38,711 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:38,711 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:38,711 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:38,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:39,445 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:39,445 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: status_report
+2024-09-25 11:42:39,445 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:39,446 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:39,446 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:39,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:39,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:39,881 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: keepalive
+2024-09-25 11:42:40,025 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:40,025 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:40,025 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:40,026 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:40,579 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:40,579 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:40,579 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:40,579 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:40,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:41,385 DEBUG   HandlerThread:775210 [handler.py:handle_request():144] handle_request: partial_history
+2024-09-25 11:42:41,386 DEBUG   SenderThread:775210 [sender.py:send():336] send: history
+2024-09-25 11:42:41,386 DEBUG   SenderThread:775210 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:42:41,386 INFO    SenderThread:775210 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:42:41,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:41,820 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/wandb-summary.json
+2024-09-25 11:42:41,977 ERROR   cpu       :775210 [interfaces.py:monitor():141] Failed to sample metric: process no longer exists (pid=775148)
+2024-09-25 11:42:41,978 ERROR   cpu       :775210 [interfaces.py:monitor():141] Failed to sample metric: process no longer exists (pid=775148)
+2024-09-25 11:42:41,981 ERROR   memory    :775210 [interfaces.py:monitor():141] Failed to sample metric: process no longer exists (pid=775148)
+2024-09-25 11:42:41,981 ERROR   memory    :775210 [interfaces.py:monitor():141] Failed to sample metric: process no longer exists (pid=775148)
+2024-09-25 11:42:43,822 INFO    Thread-13 :775210 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114223-ol9r296h/files/output.log
+2024-09-25 11:42:43,956 INFO    MainThread:775210 [internal.py:handle_exit():77] Internal process exited

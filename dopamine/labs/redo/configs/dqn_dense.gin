@@ -16,3 +16,7 @@ NeuronRecyclerScheduled.score_type = 'redo'
 NeuronRecyclerScheduled.recycle_rate = 0.3
 
 BaseRecycler.reset_end_step = 2_500_000
+
+BaseRecycler.logging_period = 20000
+RecycledDQNAgent.is_debugging = True
+use_wandb = True

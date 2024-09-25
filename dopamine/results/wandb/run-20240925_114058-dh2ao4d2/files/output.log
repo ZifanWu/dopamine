@@ -1,0 +1,75 @@
+WARNING:tensorflow:From /home/zifan/miniconda3/envs/redo/lib/python3.10/site-packages/tensorflow/python/compat/v2_compat.py:108: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+W0925 11:40:59.586514 130691341846336 deprecation.py:50] From /home/zifan/miniconda3/envs/redo/lib/python3.10/site-packages/tensorflow/python/compat/v2_compat.py:108: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+W0925 11:40:59.588624 130691341846336 run_experiment.py:349] DEPRECATION WARNING: Logger is being deprecated. Please switch to CollectorDispatcher!
+/home/zifan/.local/lib/python3.10/site-packages/gym/envs/registration.py:593: UserWarning: [33mWARN: The environment DemonAttackNoFrameskip-v0 is out of date. You should consider upgrading to version `v4`.
+  logger.warn(
+/home/zifan/.local/lib/python3.10/site-packages/gym/core.py:317: DeprecationWarning: [33mWARN: Initializing wrapper in old step API which returns one bool instead of two. It is recommended to set `new_step_api=True` to use new step API. This will be the default behaviour in future.
+  deprecation(
+/home/zifan/.local/lib/python3.10/site-packages/gym/wrappers/step_api_compatibility.py:39: DeprecationWarning: [33mWARN: Initializing environment in old step API which returns one bool instead of two. It is recommended to set `new_step_api=True` to use new step API. This will be the default behaviour in future.
+  deprecation(
+/home/zifan/.local/lib/python3.10/site-packages/gym/core.py:317: DeprecationWarning: [33mWARN: Initializing wrapper in old step API which returns one bool instead of two. It is recommended to set `new_step_api=True` to use new step API. This will be the default behaviour in future.
+  deprecation(
+I0925 11:40:59.655453 130691341846336 dqn_agent.py:314] Creating RecycledDQNAgent agent with the following parameters:
+I0925 11:40:59.655580 130691341846336 dqn_agent.py:318] 	 gamma: 0.990000
+I0925 11:40:59.655626 130691341846336 dqn_agent.py:319] 	 update_horizon: 1.000000
+I0925 11:40:59.655662 130691341846336 dqn_agent.py:320] 	 min_replay_history: 20000
+I0925 11:40:59.655696 130691341846336 dqn_agent.py:321] 	 update_period: 4
+I0925 11:40:59.655728 130691341846336 dqn_agent.py:322] 	 target_update_period: 8000
+I0925 11:40:59.655761 130691341846336 dqn_agent.py:323] 	 epsilon_train: 0.010000
+I0925 11:40:59.655792 130691341846336 dqn_agent.py:324] 	 epsilon_eval: 0.001000
+I0925 11:40:59.655822 130691341846336 dqn_agent.py:325] 	 epsilon_decay_period: 250000
+I0925 11:40:59.655853 130691341846336 dqn_agent.py:326] 	 optimizer: adam
+I0925 11:40:59.655883 130691341846336 dqn_agent.py:327] 	 seed: 1727286059655439
+I0925 11:40:59.655913 130691341846336 dqn_agent.py:328] 	 loss_type: mse
+I0925 11:40:59.655943 130691341846336 dqn_agent.py:329] 	 preprocess_fn: None
+I0925 11:40:59.656044 130691341846336 dqn_agent.py:330] 	 summary_writing_frequency: 50000
+I0925 11:40:59.656082 130691341846336 dqn_agent.py:331] 	 allow_partial_reload: False
+I0925 11:40:59.714268 130691341846336 xla_bridge.py:895] Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+I0925 11:40:59.714870 130691341846336 xla_bridge.py:895] Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+I0925 11:40:59.874195 130691341846336 circular_replay_buffer.py:161] Creating a OutOfGraphReplayBuffer replay memory with the following parameters:
+I0925 11:40:59.874388 130691341846336 circular_replay_buffer.py:165] 	 observation_shape: (84, 84)
+I0925 11:40:59.874456 130691341846336 circular_replay_buffer.py:166] 	 observation_dtype: <class 'jax.numpy.uint8'>
+I0925 11:40:59.874500 130691341846336 circular_replay_buffer.py:167] 	 terminal_dtype: <class 'numpy.uint8'>
+I0925 11:40:59.874535 130691341846336 circular_replay_buffer.py:168] 	 stack_size: 4
+I0925 11:40:59.874568 130691341846336 circular_replay_buffer.py:169] 	 replay_capacity: 1000000
+I0925 11:40:59.874600 130691341846336 circular_replay_buffer.py:170] 	 batch_size: 32
+I0925 11:40:59.874633 130691341846336 circular_replay_buffer.py:171] 	 update_horizon: 1
+I0925 11:40:59.874669 130691341846336 circular_replay_buffer.py:172] 	 gamma: 0.990000
+I0925 11:40:59.874704 130691341846336 circular_replay_buffer.py:173] 	 checkpoint_duration: 4
+I0925 11:40:59.874736 130691341846336 circular_replay_buffer.py:174] 	 keep_every: None
+I0925 11:41:01.150800 130691341846336 dqn_agent.py:69] Creating Adam optimizer with settings lr=0.000063, beta1=0.900000, beta2=0.999000, eps=0.000150
+I0925 11:41:01.200698 130691341846336 collector_dispatcher.py:81] Added collector console.
+I0925 11:41:01.200893 130691341846336 run_experiment.py:724] Beginning training...
+  0%|                                                                                       | 0/40 [00:00<?, ?it/s]I0925 11:41:01.201426 130691341846336 run_experiment.py:595] Starting iteration 0
+/home/zifan/.local/lib/python3.10/site-packages/gym/utils/passive_env_checker.py:227: DeprecationWarning: [33mWARN: Core environment is written in old step API which returns one bool instead of two. It is recommended to rewrite the environment with new step API. 
+  logger.deprecation(
+/home/zifan/.local/lib/python3.10/site-packages/gym/utils/passive_env_checker.py:233: DeprecationWarning: `np.bool8` is a deprecated alias for `np.bool_`.  (Deprecated NumPy 1.24)
+  if not isinstance(done, (bool, np.bool8)):
+  0%|                                                                                       | 0/40 [00:01<?, ?it/s]
+Traceback (most recent call last):
+  File "/home/zifan/miniconda3/envs/redo/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/home/zifan/miniconda3/envs/redo/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/home/zifan/dopamine/dopamine/labs/redo/train.py", line 158, in <module>
+    app.run(main)
+  File "/home/zifan/.local/lib/python3.10/site-packages/absl/app.py", line 308, in run
+    _run_main(main, args)
+  File "/home/zifan/.local/lib/python3.10/site-packages/absl/app.py", line 254, in _run_main
+    sys.exit(main(argv))
+  File "/home/zifan/dopamine/dopamine/labs/redo/train.py", line 153, in main
+    runner.run_experiment()
+  File "/home/zifan/dopamine/dopamine/discrete_domains/run_experiment.py", line 738, in run_experiment
+    statistics = self._run_one_iteration(iteration)
+  File "/home/zifan/dopamine/dopamine/discrete_domains/run_experiment.py", line 597, in _run_one_iteration
+    self._run_train_phase(statistics)
+  File "/home/zifan/dopamine/dopamine/discrete_domains/run_experiment.py", line 536, in _run_train_phase
+    number_steps, sum_returns, num_episodes = self._run_one_phase(
+  File "/home/zifan/dopamine/dopamine/discrete_domains/run_experiment.py", line 517, in _run_one_phase
+    wandb.log({'train_epis_ret': episode_return, 'env_step': step_count+self.total_env_step})
+AttributeError: 'Runner' object has no attribute 'total_env_step'
+Steps executed: 1011 Episode length: 1011 Return: 120.0

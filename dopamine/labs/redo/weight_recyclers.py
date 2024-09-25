@@ -22,6 +22,10 @@ import jax
 from jax import random
 import jax.numpy as jnp
 import optax
+import re
+import wandb
+
+from dopamine.discrete_domains.run_experiment import config
 
 
 def leastk_mask(scores, ones_fraction):
@@ -196,7 +200,7 @@ class BaseRecycler:
   def maybe_log_deadneurons(self, update_step, intermediates):
     is_logging = self.is_logging_step(update_step)
     if is_logging:
-      return self.log_dead_neurons_count(intermediates)
+      return self.log_dead_neurons_count(intermediates, update_step)
     else:
       return None
 
@@ -204,12 +208,12 @@ class BaseRecycler:
       self, intermediates, update_step
   ):
     if self.is_logging_step(update_step):
-      log_dict = self.log_intersected_dead_neurons(intermediates)
+      log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
       return log_dict
     else:
       return None
 
-  def log_intersected_dead_neurons(self, intermediates):
+  def log_intersected_dead_neurons(self, intermediates, update_step):
     """Track intersected dead neurons with last logging/reset step.
 
     Args:
@@ -254,11 +258,13 @@ class BaseRecycler:
         log_dict[f'mean_score_nondead/{k[:-9]}'] = float(
             jnp.mean(score[nondead_mask])
         )
+        if config['use_wandb']:
+          wandb.log({'dead_intersected_percent': percent, 'grad_step': update_step})
 
       self.prev_neuron_score = neuron_score_dict
     return log_dict
 
-  def log_dead_neurons_count(self, intermediates):
+  def log_dead_neurons_count(self, intermediates, update_step):
     """log dead neurons in each layer.
 
     For conv layer we also log dead elements in the spatial dimension.
@@ -276,7 +282,9 @@ class BaseRecycler:
       score_dict = flax.traverse_util.flatten_dict(score, sep='/')
 
       log_dict = {}
+      layer_count = 0
       for k, m in score_dict.items():
+        layer_count += 1
         if 'final_layer' in k:
           continue
         m = m[0]
@@ -288,11 +296,15 @@ class BaseRecycler:
             float(deadneurons_count) / layer_size
         ) * 100.0
         log_dict[f'dead_{score_type}_count/{k[:-9]}'] = float(deadneurons_count)
+        if config['use_wandb']:
+          wandb.log({'layer {} dormant neuron percentage'.format(layer_count): float(deadneurons_count) / layer_size, 'grad_step': update_step})
       log_dict[f'{score_type}/total'] = total_neurons
       log_dict[f'{score_type}/deadcount'] = float(total_deadneurons)
       log_dict[f'dead_{score_type}_percentage'] = (
           float(total_deadneurons) / total_neurons
       ) * 100.0
+      if config['use_wandb']:
+        wandb.log({'overall dormant neuron percentage': float(total_deadneurons) / total_neurons, 'grad_step': update_step})
       return log_dict
 
     neuron_score = jax.tree_map(self.estimate_neuron_score, intermediates)
@@ -443,7 +455,7 @@ class NeuronRecycler(BaseRecycler):
       self, intermediates, update_step
   ):
     if self.is_reset(update_step):
-      log_dict = self.log_intersected_dead_neurons(intermediates)
+      log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
       return log_dict
     else:
       return None

@@ -1,0 +1,136 @@
+wandb_version: 1
+
+BaseRecycler.logging_period:
+  desc: null
+  value: 20000
+BaseRecycler.reset_end_step:
+  desc: null
+  value: 2500000
+CollectorDispatcher.collectors:
+  desc: null
+  value:
+  - console
+JaxDQNAgent.collector_allowlist:
+  desc: null
+  value: []
+JaxDQNAgent.epsilon_decay_period:
+  desc: null
+  value: 250000
+JaxDQNAgent.epsilon_eval:
+  desc: null
+  value: 0.001
+JaxDQNAgent.epsilon_train:
+  desc: null
+  value: 0.01
+JaxDQNAgent.gamma:
+  desc: null
+  value: 0.99
+JaxDQNAgent.min_replay_history:
+  desc: null
+  value: 20000
+JaxDQNAgent.optimizer:
+  desc: null
+  value: adam
+JaxDQNAgent.summary_writing_frequency:
+  desc: null
+  value: 50000
+JaxDQNAgent.target_update_period:
+  desc: null
+  value: 8000
+JaxDQNAgent.update_horizon:
+  desc: null
+  value: 1
+JaxDQNAgent.update_period:
+  desc: null
+  value: 4
+NeuronRecyclerScheduled.recycle_rate:
+  desc: null
+  value: 0.3
+NeuronRecyclerScheduled.score_type:
+  desc: null
+  value: redo
+OutOfGraphReplayBuffer.batch_size:
+  desc: null
+  value: 32
+OutOfGraphReplayBuffer.replay_capacity:
+  desc: null
+  value: 1000000
+RecycledDQNAgent.is_debugging:
+  desc: null
+  value: true
+RecycledDQNAgent.network:
+  desc: null
+  value: nature
+RecycledDQNAgent.num_updates_per_train_step:
+  desc: null
+  value: 1
+Runner.evaluation_steps:
+  desc: null
+  value: 125000
+Runner.max_steps_per_episode:
+  desc: null
+  value: 27000
+Runner.num_iterations:
+  desc: null
+  value: 200
+Runner.training_steps:
+  desc: null
+  value: 250000
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.13.11
+    framework: keras
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.10.0
+    start_time: 1727286222.787894
+    t:
+      1:
+      - 2
+      - 3
+      - 12
+      - 45
+      - 55
+      2:
+      - 2
+      - 3
+      - 12
+      - 45
+      - 55
+      3:
+      - 13
+      - 16
+      - 23
+      - 35
+      4: 3.10.0
+      5: 0.13.11
+      8:
+      - 5
+atari_lib.create_atari_environment.game_name:
+  desc: null
+  value: DemonAttack
+atari_lib.create_atari_environment.sticky_actions:
+  desc: null
+  value: true
+create_agent.agent_name:
+  desc: null
+  value: jax_dqn
+create_agent.debug_mode:
+  desc: null
+  value: true
+create_agent_recycled.agent_name:
+  desc: null
+  value: dqn
+create_optimizer.eps:
+  desc: null
+  value: 0.00015
+create_optimizer.learning_rate:
+  desc: null
+  value: 6.25e-05
+create_runner.schedule:
+  desc: null
+  value: continuous_train
+use_wandb:
+  desc: null
+  value: true

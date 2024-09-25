@@ -1,0 +1,183 @@
+2024-09-25 11:40:58,144 INFO    StreamThr :774830 [internal.py:wandb_internal():87] W&B internal server running at pid: 774830, started at: 2024-09-25 11:40:58.144573
+2024-09-25 11:40:58,145 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: status
+2024-09-25 11:40:58,171 INFO    WriterThread:774830 [datastore.py:open_for_write():85] open: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/run-dh2ao4d2.wandb
+2024-09-25 11:40:58,172 DEBUG   SenderThread:774830 [sender.py:send():336] send: header
+2024-09-25 11:40:58,174 DEBUG   SenderThread:774830 [sender.py:send():336] send: run
+2024-09-25 11:40:58,525 INFO    SenderThread:774830 [dir_watcher.py:__init__():219] watching files in: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files
+2024-09-25 11:40:58,525 INFO    SenderThread:774830 [sender.py:_start_run_threads():1078] run started: dh2ao4d2 with start time 1727286058.145747
+2024-09-25 11:40:58,555 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: summary_record
+2024-09-25 11:40:58,555 INFO    SenderThread:774830 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:40:58,557 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: check_version
+2024-09-25 11:40:58,557 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: check_version
+2024-09-25 11:40:58,657 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: run_start
+2024-09-25 11:40:58,668 DEBUG   HandlerThread:774830 [system_info.py:__init__():31] System info init
+2024-09-25 11:40:58,668 DEBUG   HandlerThread:774830 [system_info.py:__init__():46] System info init done
+2024-09-25 11:40:58,668 INFO    HandlerThread:774830 [system_monitor.py:start():183] Starting system monitor
+2024-09-25 11:40:58,668 INFO    SystemMonitor:774830 [system_monitor.py:_start():147] Starting system asset monitoring threads
+2024-09-25 11:40:58,668 INFO    HandlerThread:774830 [system_monitor.py:probe():204] Collecting system info
+2024-09-25 11:40:58,668 INFO    SystemMonitor:774830 [interfaces.py:start():187] Started cpu monitoring
+2024-09-25 11:40:58,669 INFO    SystemMonitor:774830 [interfaces.py:start():187] Started disk monitoring
+2024-09-25 11:40:58,669 INFO    SystemMonitor:774830 [interfaces.py:start():187] Started gpu monitoring
+2024-09-25 11:40:58,670 INFO    SystemMonitor:774830 [interfaces.py:start():187] Started memory monitoring
+2024-09-25 11:40:58,670 INFO    SystemMonitor:774830 [interfaces.py:start():187] Started network monitoring
+2024-09-25 11:40:58,684 DEBUG   HandlerThread:774830 [system_info.py:probe():195] Probing system
+2024-09-25 11:40:58,688 DEBUG   HandlerThread:774830 [system_info.py:_probe_git():180] Probing git
+2024-09-25 11:40:58,702 DEBUG   HandlerThread:774830 [system_info.py:_probe_git():188] Probing git done
+2024-09-25 11:40:58,703 DEBUG   HandlerThread:774830 [system_info.py:probe():240] Probing system done
+2024-09-25 11:40:58,703 DEBUG   HandlerThread:774830 [system_monitor.py:probe():213] {'os': 'Linux-6.8.0-40-generic-x86_64-with-glibc2.35', 'python': '3.10.0', 'heartbeatAt': '2024-09-25T17:40:58.684327', 'startedAt': '2024-09-25T17:40:58.126533', 'docker': None, 'cuda': None, 'args': ('--base_dir', '/tmp', '--gin_files', 'dopamine/labs/redo/configs/dqn_dense.gin'), 'state': 'running', 'program': '-m dopamine.labs.redo.train', 'git': {'remote': 'https://github.com/google/dopamine', 'commit': '4552f69af4763053d87ee4ce6d3da59ca3232f3c'}, 'email': 'wuzf5@mail2.sysu.edu.cn', 'root': '/home/zifan/dopamine', 'host': 'eric-brown-lab', 'username': 'zifan', 'executable': '/home/zifan/miniconda3/envs/redo/bin/python', 'cpu_count': 16, 'cpu_count_logical': 24, 'cpu_freq': {'current': 1055.7042083333333, 'min': 800.0, 'max': 4716.666666666667}, 'cpu_freq_per_core': [{'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1657.444, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1358.332, 'min': 800.0, 'max': 5200.0}, {'current': 800.0, 'min': 800.0, 'max': 5200.0}, {'current': 800.344, 'min': 800.0, 'max': 5200.0}, {'current': 800.0, 'min': 800.0, 'max': 5200.0}, {'current': 1454.616, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 1279.418, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 5100.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 803.076, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 821.664, 'min': 800.0, 'max': 3900.0}, {'current': 1250.856, 'min': 800.0, 'max': 3900.0}, {'current': 800.0, 'min': 800.0, 'max': 3900.0}, {'current': 1886.697, 'min': 800.0, 'max': 3900.0}, {'current': 1223.189, 'min': 800.0, 'max': 3900.0}], 'disk': {'total': 2749.074417114258, 'used': 354.09461212158203}, 'gpu': 'NVIDIA GeForce RTX 3090', 'gpu_count': 1, 'gpu_devices': [{'name': 'NVIDIA GeForce RTX 3090', 'memory_total': 25769803776}], 'memory': {'total': 62.60737228393555}}
+2024-09-25 11:40:58,703 INFO    HandlerThread:774830 [system_monitor.py:probe():214] Finished collecting system info
+2024-09-25 11:40:58,703 INFO    HandlerThread:774830 [system_monitor.py:probe():217] Publishing system info
+2024-09-25 11:40:58,704 DEBUG   HandlerThread:774830 [system_info.py:_save_pip():51] Saving list of pip packages installed into the current environment
+2024-09-25 11:40:58,705 DEBUG   HandlerThread:774830 [system_info.py:_save_pip():67] Saving pip packages done
+2024-09-25 11:40:58,705 DEBUG   HandlerThread:774830 [system_info.py:_save_conda():74] Saving list of conda packages installed into the current environment
+2024-09-25 11:40:59,526 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-summary.json
+2024-09-25 11:40:59,526 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/requirements.txt
+2024-09-25 11:40:59,526 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/conda-environment.yaml
+2024-09-25 11:40:59,543 DEBUG   HandlerThread:774830 [system_info.py:_save_conda():86] Saving conda packages done
+2024-09-25 11:40:59,543 DEBUG   HandlerThread:774830 [system_info.py:_save_code():89] Saving code
+2024-09-25 11:40:59,543 WARNING HandlerThread:774830 [system_info.py:_save_code():91] unable to save code -- program entry not found
+2024-09-25 11:40:59,543 DEBUG   HandlerThread:774830 [system_info.py:_save_patches():127] Saving git patches
+2024-09-25 11:40:59,556 DEBUG   HandlerThread:774830 [system_info.py:_save_patches():169] Saving git patches done
+2024-09-25 11:40:59,556 INFO    HandlerThread:774830 [system_monitor.py:probe():219] Finished publishing system info
+2024-09-25 11:40:59,560 DEBUG   SenderThread:774830 [sender.py:send():336] send: files
+2024-09-25 11:40:59,560 INFO    SenderThread:774830 [sender.py:_save_file():1332] saving file wandb-metadata.json with policy now
+2024-09-25 11:40:59,560 INFO    SenderThread:774830 [sender.py:_save_file():1332] saving file diff.patch with policy now
+2024-09-25 11:40:59,565 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: stop_status
+2024-09-25 11:40:59,565 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: stop_status
+2024-09-25 11:40:59,800 DEBUG   SenderThread:774830 [sender.py:send():336] send: telemetry
+2024-09-25 11:41:00,045 INFO    wandb-upload_1:774830 [upload_job.py:push():138] Uploaded file /tmp/tmplvqg2xn3wandb/l64mys8c-diff.patch
+2024-09-25 11:41:00,052 INFO    wandb-upload_0:774830 [upload_job.py:push():138] Uploaded file /tmp/tmplvqg2xn3wandb/8p1onoex-wandb-metadata.json
+2024-09-25 11:41:00,525 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-metadata.json
+2024-09-25 11:41:00,525 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/output.log
+2024-09-25 11:41:00,526 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_created():278] file/dir created: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/diff.patch
+2024-09-25 11:41:02,449 DEBUG   SenderThread:774830 [sender.py:send():336] send: exit
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:send_exit():559] handling exit code: 1
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:send_exit():561] handling runtime: 3
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:send_exit():567] send defer
+2024-09-25 11:41:02,449 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,449 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 0
+2024-09-25 11:41:02,449 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 0
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 1
+2024-09-25 11:41:02,449 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,449 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 1
+2024-09-25 11:41:02,449 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 1
+2024-09-25 11:41:02,449 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 2
+2024-09-25 11:41:02,449 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,449 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 2
+2024-09-25 11:41:02,449 INFO    HandlerThread:774830 [system_monitor.py:finish():193] Stopping system monitor
+2024-09-25 11:41:02,450 DEBUG   SystemMonitor:774830 [system_monitor.py:_start():161] Starting system metrics aggregation loop
+2024-09-25 11:41:02,450 INFO    HandlerThread:774830 [interfaces.py:finish():199] Joined cpu monitor
+2024-09-25 11:41:02,450 DEBUG   SystemMonitor:774830 [system_monitor.py:_start():168] Finished system metrics aggregation loop
+2024-09-25 11:41:02,450 DEBUG   SystemMonitor:774830 [system_monitor.py:_start():172] Publishing last batch of metrics
+2024-09-25 11:41:02,451 INFO    HandlerThread:774830 [interfaces.py:finish():199] Joined disk monitor
+2024-09-25 11:41:02,474 INFO    HandlerThread:774830 [interfaces.py:finish():199] Joined gpu monitor
+2024-09-25 11:41:02,474 INFO    HandlerThread:774830 [interfaces.py:finish():199] Joined memory monitor
+2024-09-25 11:41:02,474 INFO    HandlerThread:774830 [interfaces.py:finish():199] Joined network monitor
+2024-09-25 11:41:02,474 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,474 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 2
+2024-09-25 11:41:02,474 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 3
+2024-09-25 11:41:02,474 DEBUG   SenderThread:774830 [sender.py:send():336] send: stats
+2024-09-25 11:41:02,474 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,474 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 3
+2024-09-25 11:41:02,474 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,474 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 3
+2024-09-25 11:41:02,474 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 4
+2024-09-25 11:41:02,474 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,475 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 4
+2024-09-25 11:41:02,475 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 4
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 5
+2024-09-25 11:41:02,475 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,475 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 5
+2024-09-25 11:41:02,475 DEBUG   SenderThread:774830 [sender.py:send():336] send: summary
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:_save_file():1332] saving file wandb-summary.json with policy end
+2024-09-25 11:41:02,475 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 5
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 6
+2024-09-25 11:41:02,475 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,475 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 6
+2024-09-25 11:41:02,475 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,475 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 6
+2024-09-25 11:41:02,477 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: status_report
+2024-09-25 11:41:02,526 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/output.log
+2024-09-25 11:41:02,527 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-summary.json
+2024-09-25 11:41:02,786 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 7
+2024-09-25 11:41:02,787 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:02,787 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 7
+2024-09-25 11:41:02,787 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:02,787 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 7
+2024-09-25 11:41:03,449 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: poll_exit
+2024-09-25 11:41:03,527 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/config.yaml
+2024-09-25 11:41:04,452 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 8
+2024-09-25 11:41:04,453 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: poll_exit
+2024-09-25 11:41:04,453 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:04,454 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 8
+2024-09-25 11:41:04,455 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:04,455 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 8
+2024-09-25 11:41:04,455 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 9
+2024-09-25 11:41:04,456 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:04,456 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 9
+2024-09-25 11:41:04,457 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:04,457 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 9
+2024-09-25 11:41:04,457 INFO    SenderThread:774830 [dir_watcher.py:finish():365] shutting down directory watcher
+2024-09-25 11:41:04,528 INFO    Thread-13 :774830 [dir_watcher.py:_on_file_modified():295] file/dir modified: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/output.log
+2024-09-25 11:41:04,529 INFO    SenderThread:774830 [dir_watcher.py:finish():395] scan: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files
+2024-09-25 11:41:04,530 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/diff.patch diff.patch
+2024-09-25 11:41:04,530 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/output.log output.log
+2024-09-25 11:41:04,530 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-metadata.json wandb-metadata.json
+2024-09-25 11:41:04,531 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/conda-environment.yaml conda-environment.yaml
+2024-09-25 11:41:04,531 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-summary.json wandb-summary.json
+2024-09-25 11:41:04,531 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/config.yaml config.yaml
+2024-09-25 11:41:04,531 INFO    SenderThread:774830 [dir_watcher.py:finish():409] scan save: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/requirements.txt requirements.txt
+2024-09-25 11:41:04,531 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 10
+2024-09-25 11:41:04,532 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:04,532 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 10
+2024-09-25 11:41:04,550 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:04,551 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 10
+2024-09-25 11:41:04,551 INFO    SenderThread:774830 [file_pusher.py:finish():164] shutting down file pusher
+2024-09-25 11:41:04,990 INFO    wandb-upload_1:774830 [upload_job.py:push():138] Uploaded file /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/conda-environment.yaml
+2024-09-25 11:41:05,029 INFO    wandb-upload_4:774830 [upload_job.py:push():138] Uploaded file /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/config.yaml
+2024-09-25 11:41:05,037 INFO    wandb-upload_3:774830 [upload_job.py:push():138] Uploaded file /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/wandb-summary.json
+2024-09-25 11:41:05,048 INFO    wandb-upload_2:774830 [upload_job.py:push():138] Uploaded file /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/output.log
+2024-09-25 11:41:05,071 INFO    wandb-upload_0:774830 [upload_job.py:push():138] Uploaded file /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/files/requirements.txt
+2024-09-25 11:41:05,272 INFO    Thread-12 (_thread_body):774830 [sender.py:transition_state():587] send defer: 11
+2024-09-25 11:41:05,273 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:05,273 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 11
+2024-09-25 11:41:05,274 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:05,274 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 11
+2024-09-25 11:41:05,274 INFO    SenderThread:774830 [file_pusher.py:join():169] waiting for file pusher
+2024-09-25 11:41:05,275 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 12
+2024-09-25 11:41:05,275 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:05,275 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 12
+2024-09-25 11:41:05,276 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:05,276 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 12
+2024-09-25 11:41:05,585 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 13
+2024-09-25 11:41:05,585 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:05,586 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 13
+2024-09-25 11:41:05,586 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:05,587 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 13
+2024-09-25 11:41:05,587 INFO    SenderThread:774830 [sender.py:transition_state():587] send defer: 14
+2024-09-25 11:41:05,587 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: defer
+2024-09-25 11:41:05,588 DEBUG   SenderThread:774830 [sender.py:send():336] send: final
+2024-09-25 11:41:05,589 INFO    HandlerThread:774830 [handler.py:handle_request_defer():170] handle defer: 14
+2024-09-25 11:41:05,589 DEBUG   SenderThread:774830 [sender.py:send():336] send: footer
+2024-09-25 11:41:05,590 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: defer
+2024-09-25 11:41:05,590 INFO    SenderThread:774830 [sender.py:send_request_defer():583] handle sender defer: 14
+2024-09-25 11:41:05,592 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: poll_exit
+2024-09-25 11:41:05,593 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: poll_exit
+2024-09-25 11:41:05,594 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: server_info
+2024-09-25 11:41:05,595 DEBUG   SenderThread:774830 [sender.py:send_request():363] send_request: server_info
+2024-09-25 11:41:05,599 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: get_summary
+2024-09-25 11:41:05,600 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: sampled_history
+2024-09-25 11:41:05,849 INFO    MainThread:774830 [wandb_run.py:_footer_history_summary_info():3429] rendering history
+2024-09-25 11:41:05,849 INFO    MainThread:774830 [wandb_run.py:_footer_history_summary_info():3461] rendering summary
+2024-09-25 11:41:05,849 INFO    MainThread:774830 [wandb_run.py:_footer_sync_info():3387] logging synced files
+2024-09-25 11:41:05,850 DEBUG   HandlerThread:774830 [handler.py:handle_request():144] handle_request: shutdown
+2024-09-25 11:41:05,850 INFO    HandlerThread:774830 [handler.py:finish():842] shutting down handler
+2024-09-25 11:41:06,595 INFO    WriterThread:774830 [datastore.py:close():298] close: /home/zifan/dopamine/dopamine/results/wandb/run-20240925_114058-dh2ao4d2/run-dh2ao4d2.wandb
+2024-09-25 11:41:06,848 INFO    SenderThread:774830 [sender.py:finish():1504] shutting down sender
+2024-09-25 11:41:06,849 INFO    SenderThread:774830 [file_pusher.py:finish():164] shutting down file pusher
+2024-09-25 11:41:06,849 INFO    SenderThread:774830 [file_pusher.py:join():169] waiting for file pusher
