@@ -98,6 +98,10 @@ def create_agent_recycled(
     return recycled_atari100k_rainbow_agent.RecycledAtari100kRainbowAgent(
         num_actions=environment.action_space.n, summary_writer=summary_writer
     )
+  elif agent_name.startswith('pruning'):
+    return recycled_dqn_agents.PrunnerDQNAgent(
+        num_actions=environment.action_space.n, summary_writer=summary_writer
+    )
   else:
     raise ValueError('Unknown agent: {}'.format(agent_name))
 

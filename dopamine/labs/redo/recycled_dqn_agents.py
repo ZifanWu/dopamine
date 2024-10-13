@@ -15,6 +15,8 @@
 """Variant of JaxDQN for recycling."""
 
 import functools
+
+import flax.core
 from dopamine.jax import losses
 from dopamine.jax.agents.dqn import dqn_agent
 from dopamine.labs.redo import networks
@@ -24,6 +26,7 @@ import gin
 import jax
 import jax.numpy as jnp
 import optax
+import flax
 
 
 @functools.partial(jax.jit, static_argnames=['apply_fn'])
@@ -76,11 +79,13 @@ def get_gradients(
 
 
 @functools.partial(jax.jit, static_argnames=['optimizer'])
-def apply_updates_jitted(online_params, grad, optimizer_state, optimizer):
+def apply_updates_jitted(online_params, grad, optimizer_state, optimizer, is_reset):
+  # print(grad.__class__, optimizer_state.__class__, online_params.__class__)
   updates, optimizer_state = optimizer.update(
-      grad, optimizer_state, params=online_params
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
   )
-  new_online_params = optax.apply_updates(online_params, updates)
+  # print(grad.__class__, optimizer_state.__class__, updates.__class__)
+  new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
   return new_online_params, optimizer_state
 
 
@@ -113,6 +118,7 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
         network=functools.partial(network, width=width),
         summary_writer=summary_writer,
     )
+    self.network = network
 
     if weight_decay > 0:
       # TODO(gsokar) we may compare the performance with adamw.
@@ -121,6 +127,29 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
           optax.add_decayed_weights(weight_decay), self.optimizer
       )
       self.optimizer_state = self.optimizer.init(self.online_params)
+    # NOTE (ZW) parameter dict structure
+    # for k in self.online_params.keys():
+    #   print(11, k)
+    #   for k1 in self.online_params[k].keys():
+    #     print(22, k1)
+    #     for k2 in self.online_params[k][k1].keys():
+    #       print(33, k2, self.online_params[k][k1][k2].shape)
+        # 11 params
+        # 22 Conv_0
+        # 33 kernel (8, 8, 4, 32)
+        # 33 bias (32,)
+        # 22 Conv_1
+        # 33 kernel (4, 4, 32, 64)
+        # 33 bias (64,)
+        # 22 Conv_2
+        # 33 kernel (3, 3, 64, 64)
+        # 33 bias (64,)
+        # 22 Dense_0
+        # 33 kernel (7744, 512)
+        # 33 bias (512,)
+        # 22 final_layer
+        # 33 kernel (512, 6)
+        # 33 bias (6,)
 
     self.batch_size_statistics = batch_size_statistics
     self.target_update_strategy = target_update_strategy
@@ -195,7 +224,6 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
         batch=batch,
         cumulative_gamma=self.cumulative_gamma,
     )
-
     new_online_params, self.optimizer_state = apply_updates_jitted(
         online_params, grad, self.optimizer_state, self.optimizer
     )
@@ -260,3 +288,128 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
 
     _, state = jax.vmap(apply_data)(batch)
     return state['intermediates']
+
+
+# NOTE (ZW) Added
+from dopamine.labs.redo import sparse_util
+
+@functools.partial(jax.jit, static_argnames=['optimizer', 'is_reset'])
+def apply_normal_updates_jitted(online_params, grad, optimizer_state, optimizer, is_reset):
+  updates, optimizer_state = optimizer.update(
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
+  )
+  new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
+  return new_online_params, optimizer_state
+
+# @functools.partial(jax.jit, static_argnames=['optimizer'])
+def apply_reset_updates(online_params, grad, optimizer_state, optimizer, is_reset):
+  updates, optimizer_state = optimizer.update(
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
+  )
+  new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
+  # new_optimizer_state = update_fn(updates, new_optimizer_state, new_online_params)
+  return new_online_params, optimizer_state
+
+
+class PrunnerDQNAgent(RecycledDQNAgent):
+
+  def __init__(
+      self,
+      **kwargs
+  ):
+    super(PrunnerDQNAgent, self).__init__(**kwargs)
+    self.weight_recycler = weight_recyclers.PrunerDontRecycle(self.network.layer_names)
+
+  def _build_networks_and_optimizer(self):
+    self._rng, init_rng, updater_rng = jax.random.split(self._rng, num=3)
+    self.online_params = self.network_def.init(init_rng, x=self.state)
+    self.optimizer = dqn_agent.create_optimizer(self._optimizer_name)
+    self.updater = sparse_util.create_updater_from_config(rng_seed=updater_rng)
+    self.post_gradient_update = jax.jit(self.updater.post_gradient_update)
+    self.pre_forward_update = self.updater.pre_forward_update #jax.jit(self.updater.pre_forward_update)
+    self.optimizer = self.updater.wrap_optax(self.optimizer)
+    self.optimizer_state = self.optimizer.init(self.online_params)
+    self.target_network_params = self.online_params
+
+  def _training_step_update(self):
+    # We are using # gradient_update_steps in our calculations and logging.
+    update_step = self.gradient_step
+    is_logging = (
+        update_step > 0 and update_step % self.summary_writing_frequency == 0
+    )
+
+    self._sample_from_replay_buffer()
+    batch = {
+        k: self.preprocess_fn(v) if k in ['state', 'next_state'] else v
+        for k, v in self.replay_elements.items()
+    }
+    online_params = self.online_params
+
+    # Neuron/layer recycling starts if reset_mode is not None.
+    # Otherwise, we log dead neurons over training for standard agent.
+    is_intermediated = self.weight_recycler.is_intermediated_required(
+        update_step
+    )
+    # get intermediate activation per layer to calculate neuron score.
+    intermediates = (
+        self.get_intermediates(online_params) if is_intermediated else None
+    )
+    log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
+        update_step, intermediates
+    )
+    # logging dead neurons.
+    self._log_stats(log_dict_neurons, update_step)
+    if self.is_debugging:
+      log_dict_intersected = (
+          self.weight_recycler.intersected_dead_neurons_with_last_reset(
+              intermediates, update_step
+          )
+      )
+      self._log_stats(log_dict_intersected, update_step)
+    # NOTE------------------------------------------------------
+    is_reset = self.weight_recycler.is_reset(update_step)
+    if is_reset:
+      intermediates = (
+          self.get_intermediates(online_params)
+      ) if intermediates is None else intermediates
+      activations_score_dict = flax.traverse_util.flatten_dict(
+          intermediates, sep='/'
+      )
+      # pass the activation value to the pruner
+      self.pre_forward_update(
+          activations_score_dict, self.weight_recycler.reset_layers, self.optimizer_state
+      )
+    # -----------------------------------------------------------
+    loss, grad = get_gradients(
+        online_params=online_params,
+        apply_fn=self.network_def.apply,
+        target_params=self.target_network_params,
+        batch=batch,
+        cumulative_gamma=self.cumulative_gamma,
+    )
+    # self.optimizer_state.count + 4983 == update_step
+    # print(111, update_step)
+    if is_reset:
+      new_online_params, self.optimizer_state = apply_reset_updates(
+          online_params, grad, self.optimizer_state, self.optimizer, is_reset=is_reset
+      )
+    else:
+      new_online_params, self.optimizer_state = apply_normal_updates_jitted(
+          online_params, grad, self.optimizer_state, self.optimizer, is_reset=None
+      )
+    # NOTE------------------------------------------------------
+    if is_reset:
+      new_online_params = self.post_gradient_update(
+          new_online_params, self.optimizer_state
+      )
+    # -----------------------------------------------------------
+    self.online_params = new_online_params
+    online_params = self.online_params
+
+    # Neuron/layer recyling.
+    # self._rng, key = jax.random.split(self._rng)
+    # online_params, opt_state = self.weight_recycler.maybe_update_weights(
+    #     update_step, intermediates, online_params, key, self.optimizer_state
+    # )
+    # self.optimizer_state = opt_state
+    self.online_params = online_params

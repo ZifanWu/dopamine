@@ -3,7 +3,7 @@ include 'dopamine/jax/agents/dqn/configs/dqn.gin'
 import dopamine.labs.redo.recycled_dqn_agents
 import dopamine.labs.redo.weight_recyclers
 
-Runner.num_iterations = 40
+Runner.num_iterations = 800 # 250000 env steps per iter
 create_agent_recycled.agent_name = 'dqn'
 # Empty list allows all.
 JaxDQNAgent.collector_allowlist = []
@@ -16,3 +16,42 @@ NeuronRecyclerScheduled.score_type = 'redo'
 NeuronRecyclerScheduled.recycle_rate = 0.3
 
 BaseRecycler.reset_end_step = 2_500_000
+
+
+# NOTE (ZW) added
+atari_lib.create_atari_environment.game_name = 'DemonAttack'
+RecycledDQNAgent.is_debugging = True # log overlapping rates
+
+RecycledDQNAgent.reset_mode = False
+create_agent_recycled.agent_name = 'pruning'
+
+JaxDQNAgent.update_period = 4
+JaxDQNAgent.target_update_period = 8000  # agent steps
+BaseRecycler.logging_period = 20_000
+BaseRecycler.dead_neurons_threshold = 0.025
+
+NeuronRecycler.dead_neurons_threshold = 0.025
+NeuronRecycler.reset_period = 1_000
+#NeuronRecycler.reset_start_step = 1
+NeuronRecycler.reset_end_step = 1_000_000_000
+#NeuronRecycler.prune_dormant_neurons = False
+
+# pruner configs
+create_updater_from_config.pruner_type='activation'
+create_updater_from_config.sparsity_type='dormant_0.9' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
+create_updater_from_config.dist_type='erk'
+#create_updater_from_config.update_start_step=50000
+#create_updater_from_config.update_end_step=2000000
+#create_updater_from_config.update_freq=100
+
+# Use these for dynamic sparse training algorithms.
+create_updater_from_config.update_start_step=0
+create_updater_from_config.update_freq=100
+#create_updater_from_config.drop_fracion=0.3
+create_updater_from_config.sparsity=0.98
+
+BaseRecycler.reset_period = 1_000 # default: 1000
+BaseRecycler.reset_start_step = 1
+BaseRecycler.reset_end_step = 1_000_000_000
+
+use_wandb = True
