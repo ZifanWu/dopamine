@@ -111,6 +111,8 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       network = networks.ScalableDQNResNet
     elif network == 'nature':
       network = networks.ScalableNatureDQNNetwork
+    elif network == 'nature_with_one_extra_ffn':
+      network = networks.ScalableNatureDQNNetworkWithOneExtraFFN
     else:
       raise ValueError(f'Invalid network: {network}')
     super().__init__(

@@ -22,8 +22,9 @@ BaseRecycler.reset_end_step = 2_500_000
 atari_lib.create_atari_environment.game_name = 'DemonAttack'
 RecycledDQNAgent.is_debugging = True # log overlapping rates
 
-RecycledDQNAgent.reset_mode = False
-create_agent_recycled.agent_name = 'pruning'
+RecycledDQNAgent.reset_mode = 'neurons'
+create_agent_recycled.agent_name = 'dqn'
+# RecycledDQNAgent.network = networks.NatureDQNNetworkWithOneExtraFFN
 
 JaxDQNAgent.update_period = 4
 JaxDQNAgent.target_update_period = 8000  # agent steps
@@ -34,7 +35,7 @@ NeuronRecycler.dead_neurons_threshold = 0.025
 NeuronRecycler.reset_period = 1_000
 # NeuronRecycler.reset_start_step = 1
 NeuronRecycler.reset_end_step = 1_000_000_000
-# NeuronRecycler.prune_dormant_neurons = False
+NeuronRecycler.prune_dormant_neurons = True
 
 # pruner configs
 create_updater_from_config.pruner_type='activation'
@@ -54,4 +55,4 @@ BaseRecycler.reset_period = 1_000 # default: 1000
 BaseRecycler.reset_start_step = 1
 BaseRecycler.reset_end_step = 1_000_000_000
 
-use_wandb = True
+use_wandb = False

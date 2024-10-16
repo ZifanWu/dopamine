@@ -878,38 +878,38 @@ class NeuronRecycler(BaseRecycler):
         param_dict,
     ) = self.create_masks(param_dict, activations_score_dict, key)
 
-    params = flax.core.freeze(
-        flax.traverse_util.unflatten_dict(param_dict, sep='/')
-    )
-    if self.init_method_outgoing == 'random':
-      outgoing_random_keys = flax.core.freeze(
-          flax.traverse_util.unflatten_dict(outgoing_random_keys_dict, sep='/')
-      )
+    # params = flax.core.freeze(
+    #     flax.traverse_util.unflatten_dict(param_dict, sep='/')
+    # )
+    # if self.init_method_outgoing == 'random':
+    #   outgoing_random_keys = flax.core.freeze(
+    #       flax.traverse_util.unflatten_dict(outgoing_random_keys_dict, sep='/')
+    #   )
 
-    # reset outgoing weights
-    outgoing_mask = flax.core.freeze(
-        flax.traverse_util.unflatten_dict(outgoing_mask_dict, sep='/')
-    )
-    if self.init_method_outgoing == 'random':
-      reinit_fn = functools.partial(
-          weight_reinit_random,
-          weight_scaling=self.weight_scaling,
-          scale=self.outgoing_scale,
-          weights_type='outgoing',
-      )
-      weight_random_reset_fn = jax.jit(
-          functools.partial(jax.tree_util.tree_map, reinit_fn)
-      )
-      params = weight_random_reset_fn(
-          params, outgoing_mask, outgoing_random_keys
-      )
-    elif self.init_method_outgoing == 'zero':
-      weight_zero_reset_fn = jax.jit(
-          functools.partial(jax.tree_util.tree_map, weight_reinit_zero)
-      )
-      params = weight_zero_reset_fn(params, outgoing_mask)
-    else:
-      raise ValueError(f'Invalid init method: {self.init_method_outgoing}')
+    # # reset outgoing weights
+    # outgoing_mask = flax.core.freeze(
+    #     flax.traverse_util.unflatten_dict(outgoing_mask_dict, sep='/')
+    # )
+    # if self.init_method_outgoing == 'random':
+    #   reinit_fn = functools.partial(
+    #       weight_reinit_random,
+    #       weight_scaling=self.weight_scaling,
+    #       scale=self.outgoing_scale,
+    #       weights_type='outgoing',
+    #   )
+    #   weight_random_reset_fn = jax.jit(
+    #       functools.partial(jax.tree_util.tree_map, reinit_fn)
+    #   )
+    #   params = weight_random_reset_fn(
+    #       params, outgoing_mask, outgoing_random_keys
+    #   )
+    # elif self.init_method_outgoing == 'zero':
+    #   weight_zero_reset_fn = jax.jit(
+    #       functools.partial(jax.tree_util.tree_map, weight_reinit_zero)
+    #   )
+    #   params = weight_zero_reset_fn(params, outgoing_mask)
+    # else:
+    #   raise ValueError(f'Invalid init method: {self.init_method_outgoing}')
     return params
 
   def _score2mask(self, activation, param, next_param, key):
@@ -1004,7 +1004,7 @@ class NeuronRecycler(BaseRecycler):
       bias_key = 'params/' + k + '/bias'
       new_bias = jnp.zeros_like(param_dict[bias_key])
       if self.prune_dormant_neurons:
-        new_bias -= 9999999999999
+        new_bias -= 99999999
       param_dict[bias_key] = jnp.where(
           neuron_mask, new_bias, param_dict[bias_key]
       ) # True entities in param_dict[bias_key] will be replaced by new_bias
