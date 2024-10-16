@@ -32,13 +32,13 @@ BaseRecycler.dead_neurons_threshold = 0.025
 
 NeuronRecycler.dead_neurons_threshold = 0.025
 NeuronRecycler.reset_period = 1_000
-#NeuronRecycler.reset_start_step = 1
+# NeuronRecycler.reset_start_step = 1
 NeuronRecycler.reset_end_step = 1_000_000_000
-#NeuronRecycler.prune_dormant_neurons = False
+# NeuronRecycler.prune_dormant_neurons = False
 
 # pruner configs
 create_updater_from_config.pruner_type='activation'
-create_updater_from_config.sparsity_type='dormant_0.9' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
+create_updater_from_config.sparsity_type='dormant_100' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
 create_updater_from_config.dist_type='erk'
 #create_updater_from_config.update_start_step=50000
 #create_updater_from_config.update_end_step=2000000

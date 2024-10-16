@@ -981,28 +981,30 @@ class NeuronRecycler(BaseRecycler):
           key, subkey = random.split(key)
           outgoing_random_keys_dict[next_param_key] = subkey
 
-    #     if self.prune_dormant_neurons: # NOTE (ZW) stop the gradients flowing through dormant neurons
-    #       # NOTE (ZW) Log the magnitude of outgoing weights of dormant neurons
-    #       print('Pruning {} outgoing weights at layer {}'.format(outgoing_mask.sum(), k))
-    #       next_param = jnp.where(~outgoing_mask, next_param, jax.lax.stop_gradient(next_param))
+        if self.prune_dormant_neurons: # NOTE (ZW) stop the gradients flowing through dormant neurons
+          # NOTE (ZW) Log the magnitude of outgoing weights of dormant neurons
+          print('Pruning {} outgoing weights at layer {}'.format(outgoing_mask.sum(), k))
+          # next_param = jnp.where(~outgoing_mask, next_param, jax.lax.stop_gradient(next_param))
         
-    #       if self.first_time_pruning and (jnp.count_nonzero(outgoing_mask) > 0):
-    #         self.next_param_key = next_param_key
-    #         self.outgoing_mask = outgoing_mask
-    #         self.first_time_pruning = False
+      #     if self.first_time_pruning and (jnp.count_nonzero(outgoing_mask) > 0):
+      #       self.next_param_key = next_param_key
+      #       self.outgoing_mask = outgoing_mask
+      #       self.first_time_pruning = False
 
-    # if (not self.first_time_pruning) and self.prune_dormant_neurons:
-    #   print(jnp.count_nonzero(self.outgoing_mask), self.next_param_key)
-    #   frozen_params = jnp.where(self.outgoing_mask == 1, jnp.zeros_like(param_dict[self.next_param_key]), param_dict[self.next_param_key])
-    #   print(jnp.linalg.vector_norm(frozen_params).item())
-    #   import time
-    #   time.sleep(2)
-    #   if config['use_wandb']:
-    #     wandb.log({'frozen_params_norm': jnp.linalg.vector_norm(frozen_params).item(), 'grad_step': self._last_update_step})
+      # if (not self.first_time_pruning) and self.prune_dormant_neurons:
+      #   print(jnp.count_nonzero(self.outgoing_mask), self.next_param_key)
+      #   frozen_params = jnp.where(self.outgoing_mask == 1, jnp.zeros_like(param_dict[self.next_param_key]), param_dict[self.next_param_key])
+      #   print(jnp.linalg.vector_norm(frozen_params).item())
+      #   import time
+      #   time.sleep(2)
+      #   if config['use_wandb']:
+      #     wandb.log({'frozen_params_norm': jnp.linalg.vector_norm(frozen_params).item(), 'grad_step': self._last_update_step})
 
       # reset bias
       bias_key = 'params/' + k + '/bias'
       new_bias = jnp.zeros_like(param_dict[bias_key])
+      if self.prune_dormant_neurons:
+        new_bias -= 9999999999999
       param_dict[bias_key] = jnp.where(
           neuron_mask, new_bias, param_dict[bias_key]
       ) # True entities in param_dict[bias_key] will be replaced by new_bias

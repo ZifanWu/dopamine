@@ -79,10 +79,10 @@ def get_gradients(
 
 
 @functools.partial(jax.jit, static_argnames=['optimizer'])
-def apply_updates_jitted(online_params, grad, optimizer_state, optimizer, is_reset):
+def apply_updates_jitted(online_params, grad, optimizer_state, optimizer):
   # print(grad.__class__, optimizer_state.__class__, online_params.__class__)
   updates, optimizer_state = optimizer.update(
-      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params)
   )
   # print(grad.__class__, optimizer_state.__class__, updates.__class__)
   new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
@@ -293,18 +293,18 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
 # NOTE (ZW) Added
 from dopamine.labs.redo import sparse_util
 
-@functools.partial(jax.jit, static_argnames=['optimizer', 'is_reset'])
-def apply_normal_updates_jitted(online_params, grad, optimizer_state, optimizer, is_reset):
+@functools.partial(jax.jit, static_argnames=['optimizer', 'is_prune'])
+def apply_normal_updates_jitted(online_params, grad, optimizer_state, optimizer, is_prune):
   updates, optimizer_state = optimizer.update(
-      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_prune=is_prune
   )
   new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
   return new_online_params, optimizer_state
 
 # @functools.partial(jax.jit, static_argnames=['optimizer'])
-def apply_reset_updates(online_params, grad, optimizer_state, optimizer, is_reset):
+def apply_reset_updates(online_params, grad, optimizer_state, optimizer, is_prune):
   updates, optimizer_state = optimizer.update(
-      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_reset=is_reset
+      flax.core.unfreeze(grad), optimizer_state, params=flax.core.unfreeze(online_params), is_prune=is_prune
   )
   new_online_params = optax.apply_updates(flax.core.unfreeze(online_params), updates)
   # new_optimizer_state = update_fn(updates, new_optimizer_state, new_online_params)
@@ -334,9 +334,6 @@ class PrunnerDQNAgent(RecycledDQNAgent):
   def _training_step_update(self):
     # We are using # gradient_update_steps in our calculations and logging.
     update_step = self.gradient_step
-    is_logging = (
-        update_step > 0 and update_step % self.summary_writing_frequency == 0
-    )
 
     self._sample_from_replay_buffer()
     batch = {
@@ -367,8 +364,8 @@ class PrunnerDQNAgent(RecycledDQNAgent):
       )
       self._log_stats(log_dict_intersected, update_step)
     # NOTE------------------------------------------------------
-    is_reset = self.weight_recycler.is_reset(update_step)
-    if is_reset:
+    is_prune = self.weight_recycler.is_reset(update_step)
+    if is_prune:
       intermediates = (
           self.get_intermediates(online_params)
       ) if intermediates is None else intermediates
@@ -388,17 +385,16 @@ class PrunnerDQNAgent(RecycledDQNAgent):
         cumulative_gamma=self.cumulative_gamma,
     )
     # self.optimizer_state.count + 4983 == update_step
-    # print(111, update_step)
-    if is_reset:
+    if is_prune:
       new_online_params, self.optimizer_state = apply_reset_updates(
-          online_params, grad, self.optimizer_state, self.optimizer, is_reset=is_reset
+          online_params, grad, self.optimizer_state, self.optimizer, is_prune=is_prune
       )
     else:
       new_online_params, self.optimizer_state = apply_normal_updates_jitted(
-          online_params, grad, self.optimizer_state, self.optimizer, is_reset=None
+          online_params, grad, self.optimizer_state, self.optimizer, is_prune=None
       )
     # NOTE------------------------------------------------------
-    if is_reset:
+    if is_prune:
       new_online_params = self.post_gradient_update(
           new_online_params, self.optimizer_state
       )
