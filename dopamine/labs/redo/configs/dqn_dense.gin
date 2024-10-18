@@ -24,7 +24,7 @@ RecycledDQNAgent.is_debugging = True # log overlapping rates
 
 RecycledDQNAgent.reset_mode = 'neurons'
 create_agent_recycled.agent_name = 'dqn'
-# RecycledDQNAgent.network = networks.NatureDQNNetworkWithOneExtraFFN
+RecycledDQNAgent.network = 'nature_with_one_extra_ffn'  # nature_with_one_extra_ffn
 
 JaxDQNAgent.update_period = 4
 JaxDQNAgent.target_update_period = 8000  # agent steps
@@ -39,7 +39,7 @@ NeuronRecycler.prune_dormant_neurons = True
 
 # pruner configs
 create_updater_from_config.pruner_type='activation'
-create_updater_from_config.sparsity_type='dormant_100' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
+create_updater_from_config.sparsity_type='dormant_0.025' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
 create_updater_from_config.dist_type='erk'
 #create_updater_from_config.update_start_step=50000
 #create_updater_from_config.update_end_step=2000000
@@ -49,10 +49,10 @@ create_updater_from_config.dist_type='erk'
 create_updater_from_config.update_start_step=0
 create_updater_from_config.update_freq=100
 #create_updater_from_config.drop_fracion=0.3
-create_updater_from_config.sparsity=0.98
+create_updater_from_config.sparsity=0.95
 
 BaseRecycler.reset_period = 1_000 # default: 1000
 BaseRecycler.reset_start_step = 1
 BaseRecycler.reset_end_step = 1_000_000_000
 
-use_wandb = False
+use_wandb = True

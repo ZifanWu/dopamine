@@ -30,6 +30,60 @@ from dopamine.metrics import statistics_instance
 from flax.metrics import tensorboard
 import gin
 from gym import spaces
+import socket
+from pathlib import Path
+import os
+import re
+
+
+def parse_gin_file(file_path):
+  config_dict = {}
+  with open(file_path, 'r') as file:
+      for line in file:
+          line = line.strip()
+          if line and not line.startswith('#') and not line.startswith('import'):
+              # Split the line into key and value
+              parts = line.split('=', 1)
+              if len(parts) == 2:
+                  key = parts[0].strip()
+                  value = parts[1].strip()
+                  
+                  # Remove quotes from string values
+                  value = re.sub(r'^[\'"]|[\'"]$', '', value)
+                  
+                  # Convert to appropriate type if possible
+                  try:
+                      value = eval(value)
+                  except:
+                      pass
+                  
+                  config_dict[key] = value
+  return config_dict
+
+gin_file_paths = ['./dopamine/labs/sac_from_pixels/sac_pixels.gin']#, './dopamine/jax/agents/dqn/configs/dqn.gin']
+config = {}
+for path in gin_file_paths:
+  config = {**config, **parse_gin_file(path)}
+# config = parse_gin_file(gin_file_path)
+print(config)
+run_dir = "~/dopamine_results"
+if not Path(run_dir).exists():
+  os.makedirs(str(run_dir))
+import numpy as np
+rnd_num = np.random.randint(0, 100000, size=1)[0]
+# if config['use_wandb']:
+#   import wandb
+#   wandb.init(config=config,
+#             project='dormant-neuron',
+#             entity='zarzard',
+#             notes=socket.gethostname(),
+#             name= str(rnd_num),
+#             dir=str(run_dir),
+#             job_type="training",
+#             reinit=True,
+#             # sync_tensorboard=True,
+#             monitor_gym=True,
+#             save_code=True)
 
 
 
@@ -38,7 +92,7 @@ load_gin_configs = base_run_experiment.load_gin_configs
 
 @gin.configurable
 def create_continuous_agent(
-    environment: gym_lib.GymPreprocessing,
+    environment: deepmind_control_lib.DeepmindControlWithImagesPreprocessing, #gym_lib.GymPreprocessing,
     agent_name: str,
     summary_writer: Optional[tensorboard.SummaryWriter] = None,
 ) -> dqn_agent.JaxDQNAgent:
@@ -112,7 +166,7 @@ class ContinuousRunner(base_run_experiment.Runner):
       self,
       base_dir,
       create_agent_fn,
-      create_environment_fn=gym_lib.create_gym_environment,
+      create_environment_fn=deepmind_control_lib.create_deepmind_control_environment,#gym_lib.create_gym_environment,
       checkpoint_file_prefix='ckpt',
       logging_file_prefix='log',
       log_every_n=1,
@@ -240,7 +294,7 @@ class ContinuousTrainRunner(ContinuousRunner):
       self,
       base_dir,
       create_agent_fn,
-      create_environment_fn=gym_lib.create_gym_environment,
+      create_environment_fn=deepmind_control_lib.create_deepmind_control_environment,#gym_lib.create_gym_environment,
   ):
     """Initialize the TrainRunner object in charge of running a full experiment.
 

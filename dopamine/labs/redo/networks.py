@@ -401,3 +401,67 @@ class ScalableNatureDQNNetworkWithOneExtraFFN(nn.Module):
     q_values = layer(x)
     q_values = self._record_activations(q_values, layer)
     return atari_lib.DQNNetworkType(q_values)
+  
+class ScalableNatureDQNNetworkWithTwoExtraFFNs(nn.Module):
+  """The convolutional network used to compute the agent's Q-values."""
+
+  num_actions: int
+  width: int = 1
+  layer_names = []
+
+  def _record_activations(self, x, layer):
+    if self.is_initializing():
+      name = '/'.join(layer.scope.path)
+      self.layer_names.append(name)
+    return IdentityLayer(name=f'{layer.name}_act')(x)
+
+  @nn.compact
+  def __call__(self, x):
+    # We need to reset the list otherwise it would have the previous values each
+    # time we create a new network.
+    if self.is_initializing():
+      for _ in range(len(self.layer_names)):
+        self.layer_names.pop()
+
+    def _scale_width(n):
+      return int(math.ceil(n * self.width))
+
+    initializer = nn.initializers.xavier_uniform()
+    # TODO(evcu) maybe remove this
+    x = x.astype(jnp.float32) / 255.0
+    features = (32, 64, 64)
+    kernel_sizes = (8, 4, 3)
+    strides = (4, 2, 1)
+
+    for n_feature, kernel_size, stride in zip(features, kernel_sizes, strides):
+      layer = nn.Conv(
+          features=_scale_width(n_feature),
+          kernel_size=(kernel_size, kernel_size),
+          strides=(stride, stride),
+          kernel_init=initializer,
+      )
+      x = layer(x)
+      x = nn.relu(x)
+      x = self._record_activations(x, layer)
+
+    x = x.reshape((-1))  # flatten
+    layer = nn.Dense(features=_scale_width(512), kernel_init=initializer)
+    x = layer(x)
+    x = nn.relu(x)
+    x = self._record_activations(x, layer)
+    # NOTE (ZW)------------------------------------------------------------------------
+    extra_layer = nn.Dense(features=_scale_width(512), kernel_init=initializer)
+    x = extra_layer(x)
+    x = nn.relu(x)
+    x = self._record_activations(x, extra_layer)
+    extra_extra_layer = nn.Dense(features=_scale_width(512), kernel_init=initializer)
+    x = extra_extra_layer(x)
+    x = nn.relu(x)
+    x = self._record_activations(x, extra_extra_layer)
+    # NOTE ------------------------------------------------------------------------
+    layer = nn.Dense(
+        features=self.num_actions, kernel_init=initializer, name='final_layer'
+    )
+    q_values = layer(x)
+    q_values = self._record_activations(q_values, layer)
+    return atari_lib.DQNNetworkType(q_values)

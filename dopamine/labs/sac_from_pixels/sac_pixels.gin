@@ -31,7 +31,7 @@ create_optimizer.beta1 = 0.9
 create_optimizer.beta2 = 0.999
 create_optimizer.eps = 1.0e-8
 
-create_gym_environment.environment_name = 'DM-HalfCheetah'
+create_gym_environment.environment_name = 'HalfCheetah'
 create_gym_environment.version = 'v2'
 create_continuous_runner.schedule = 'continuous_train'
 create_continuous_agent.agent_name = 'sac'

@@ -113,6 +113,8 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       network = networks.ScalableNatureDQNNetwork
     elif network == 'nature_with_one_extra_ffn':
       network = networks.ScalableNatureDQNNetworkWithOneExtraFFN
+    elif network == 'nature_with_two_extra_ffns':
+      network = networks.ScalableNatureDQNNetworkWithTwoExtraFFNs
     else:
       raise ValueError(f'Invalid network: {network}')
     super().__init__(
@@ -371,13 +373,40 @@ class PrunnerDQNAgent(RecycledDQNAgent):
       intermediates = (
           self.get_intermediates(online_params)
       ) if intermediates is None else intermediates
-      activations_score_dict = flax.traverse_util.flatten_dict(
-          intermediates, sep='/'
-      )
+      # activations_score_dict = flax.traverse_util.flatten_dict(
+      #     intermediates, sep='/'
+      # )
       # pass the activation value to the pruner
       self.pre_forward_update(
-          activations_score_dict, self.weight_recycler.reset_layers, self.optimizer_state
+          intermediates, self.weight_recycler.reset_layers, self.optimizer_state
       )
+      # def estimate_neuron_score(activation):
+      #   reduce_axes = list(range(activation.ndim - 1))
+      #   score = jnp.mean(jnp.abs(activation), axis=reduce_axes)
+      #   score /= jnp.mean(score) + 1e-9   
+      #   return score
+      # scores = jax.tree_util.tree_map(estimate_neuron_score, intermediates)
+      # param_dict = flax.traverse_util.flatten_dict(online_params, sep='/')
+      # score_dict = flax.traverse_util.flatten_dict(scores, sep='/')
+      # for k in self.weight_recycler.reset_layers:
+      #   print(param_dict['params/' + k + '/kernel'].shape)
+      #   print(score_dict[k + '_act/__call__'][0].shape)
+      #   param_dict['params/' + k + '/kernel'] = score_dict[k + '_act/__call__'][0]
+      #   print(param_dict['params/' + k + '/kernel'].shape)
+      #   print(param_dict['params/' + k + '/kernel'])
+      #   if 'Dense' in k:
+      #     # jax.debug.print("343123131: {}", score_dict[k + '_act/__call__'][0])
+      #     # jax.debug.print(k)
+      #     import time
+      #     time.sleep(222)
+          # (8, 8, 4, 32)
+          # (32,)
+          # (4, 4, 32, 64)
+          # (64,)
+          # (3, 3, 64, 64)
+          # (64,)
+          # (7744, 512)
+          # (512,)
     # -----------------------------------------------------------
     loss, grad = get_gradients(
         online_params=online_params,
