@@ -115,6 +115,10 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       network = networks.ScalableNatureDQNNetworkWithOneExtraFFN
     elif network == 'nature_with_two_extra_ffns':
       network = networks.ScalableNatureDQNNetworkWithTwoExtraFFNs
+    elif network == 'double_width_nature':
+      network = networks.ScalableNatureDQNNetworkWithDoubleWidth
+    elif network == 'nature_scaled_penultimate':
+      network = networks.NatureDQNNetworkScaledPenultimate
     else:
       raise ValueError(f'Invalid network: {network}')
     super().__init__(
@@ -246,18 +250,16 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
     intermediates = (
         self.get_intermediates(online_params) if is_intermediated else None
     )
-    log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
-        update_step, intermediates
-    )
-    # logging dead neurons.
-    self._log_stats(log_dict_neurons, update_step)
+    # log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
+    #     update_step, intermediates
+    # )
+    # # logging dead neurons.
+    # self._log_stats(log_dict_neurons, update_step)
     if self.is_debugging:
-      log_dict_intersected = (
-          self.weight_recycler.intersected_dead_neurons_with_last_reset(
-              intermediates, update_step
+      self.weight_recycler.log_dead_neurons_statistics(
+              intermediates, update_step, online_params
           )
-      )
-      self._log_stats(log_dict_intersected, update_step)
+      # self._log_stats(log_dict_intersected, update_step)
 
     # Neuron/layer recyling.
     self._rng, key = jax.random.split(self._rng)
@@ -355,18 +357,16 @@ class PrunnerDQNAgent(RecycledDQNAgent):
     intermediates = (
         self.get_intermediates(online_params) if is_intermediated else None
     )
-    log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
-        update_step, intermediates
-    )
-    # logging dead neurons.
-    self._log_stats(log_dict_neurons, update_step)
+    # log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
+    #     update_step, intermediates
+    # )
+    # # logging dead neurons.
+    # self._log_stats(log_dict_neurons, update_step)
     if self.is_debugging:
-      log_dict_intersected = (
-          self.weight_recycler.intersected_dead_neurons_with_last_reset(
-              intermediates, update_step
+      self.weight_recycler.log_dead_neurons_statistics(
+              intermediates, update_step, online_params
           )
-      )
-      self._log_stats(log_dict_intersected, update_step)
+      # self._log_stats(log_dict_intersected, update_step)
     # NOTE------------------------------------------------------
     is_prune = self.weight_recycler.is_reset(update_step)
     if is_prune:

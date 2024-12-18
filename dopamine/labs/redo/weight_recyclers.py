@@ -23,7 +23,6 @@ from jax import random
 import jax.numpy as jnp
 import optax
 import wandb
-# import jaxpruner
 
 from dopamine.discrete_domains.run_experiment import config
 
@@ -155,6 +154,8 @@ class BaseRecycler:
       reset_end_step=100_000_000,
       logging_period=20_000,
       sub_mean_score=False,
+      massive_neurons_threshold=100,
+      redo_or_prune_massive_neurons=False,
   ):
     self.all_layers_names = all_layers_names
     self.dead_neurons_threshold = dead_neurons_threshold
@@ -165,6 +166,8 @@ class BaseRecycler:
     self.logging_period = logging_period
     self.prev_neuron_score = None
     self.sub_mean_score = sub_mean_score
+    self.redo_or_prune_massive_neurons = redo_or_prune_massive_neurons
+    self.massive_neurons_threshold = massive_neurons_threshold
 
     # NOTE (ZW) added
     self.historical_dormant_mask = None
@@ -195,27 +198,33 @@ class BaseRecycler:
     return False
 
   def is_intermediated_required(self, update_step):
-    return self.is_logging_step(update_step)
+    return True #self.is_logging_step(update_step) # TODO debugging
 
   def is_logging_step(self, step):
     return step % self.logging_period == 0
 
   def maybe_log_deadneurons(self, update_step, intermediates):
     is_logging = self.is_logging_step(update_step)
-    if is_logging:
+    if is_logging: # TODO debugging
       return self.log_dead_neurons_count(intermediates, update_step)
     else:
       return None
 
-  def intersected_dead_neurons_with_last_reset(
-      self, intermediates, update_step
+  def log_dead_neurons_statistics(
+      self, intermediates, update_step, params
   ):
-    if self.is_logging_step(update_step):
-      log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
-      self.log_historical_dead_neuron_overlapping(intermediates, update_step)
-      return log_dict
+    if True:#self.is_logging_step(update_step): # TODO debugging
+      # log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
+      self.log_historical_dead_neuron_overlapping(intermediates, params, update_step)
+      return
     else:
       return None
+
+  def _compute_mask(self, score_dict):
+    if self.redo_or_prune_massive_neurons:
+      return score_dict >= self.massive_neurons_threshold
+    else:
+      return score_dict <= self.dead_neurons_threshold
 
   def log_intersected_dead_neurons(self, intermediates, update_step):
     """Track intersected dead neurons with last logging/reset step.
@@ -240,9 +249,10 @@ class BaseRecycler:
         _, prev_score = prev_k_score
         k, score = current_k_score
         prev_score, score = prev_score[0], score[0]
-        prev_mask = prev_score <= self.dead_neurons_threshold
+        prev_mask = self._compute_mask(prev_score)
         # we count the dead neurons which remains dead in the current step.
-        intersected_mask = (prev_mask) & (score <= self.dead_neurons_threshold)
+        curr_mask = self._compute_mask(score)
+        intersected_mask = (prev_mask) & (curr_mask)
         prev_dead_count = jnp.count_nonzero(prev_mask)
         intersected_count = jnp.count_nonzero(intersected_mask)
 
@@ -255,7 +265,10 @@ class BaseRecycler:
 
         # track average score of recycled neurons from last step and
         # the average of non dead in the current step.
-        nondead_mask = score > self.dead_neurons_threshold
+        if self.redo_or_prune_massive_neurons:
+          nondead_mask = score < self.massive_neurons_threshold
+        else:
+          nondead_mask = score > self.dead_neurons_threshold
         log_dict[f'mean_score_recycled/{k[:-9]}'] = float(
             jnp.mean(score[prev_mask])
         )
@@ -264,11 +277,13 @@ class BaseRecycler:
         )
         if config['use_wandb']:
           wandb.log({'{}_dead_intersected_percent'.format(k[:-9]): percent, 'grad_step': update_step})
+          wandb.log({'{}_mean_score_nondead'.format(k[:-9]): jnp.mean(score[nondead_mask]), 'grad_step': update_step})
+          wandb.log({'{}_mean_score_dead'.format(k[:-9]): jnp.mean(score[curr_mask]), 'grad_step': update_step})
 
       self.prev_neuron_score = neuron_score_dict
     return log_dict
   
-  def log_historical_dead_neuron_overlapping(self, intermediates, update_step):
+  def log_historical_dead_neuron_overlapping(self, intermediates, params, update_step):
     """Track the overlapping rate of dead neurons between the historical set/and the current step.
 
     Args:
@@ -278,11 +293,13 @@ class BaseRecycler:
       log_dict: dict contains the percentage of intersection
     """
     score_tree = jax.tree_util.tree_map(self.estimate_neuron_score, intermediates)
-    # for k in score_tree.keys():
+    # for k in intermediates.keys():
     #   print(11, k)
-    #   for k1 in score_tree[k].keys():
-    #     print(22, len(score_tree[k][k1]))
-    #     print(score_tree[k][k1][0].shape)
+    #   for k1 in intermediates[k].keys():
+    #     print(22, len(intermediates[k][k1]))
+    #     print(intermediates[k][k1][0].shape)
+    # import time
+    # time.sleep(222)
     # 11 Conv_0_act
     # 22 1
     # (32,) # in Conv layers, the number of neurons is the size of the feature map
@@ -299,20 +316,8 @@ class BaseRecycler:
     # 22 1
     # (6,)
     neuron_score_dict = flax.traverse_util.flatten_dict(score_tree, sep='/')
-    # for k in neuron_score_dict.keys():
-    #   print(11, k, len(neuron_score_dict[k]))
-    #   for i in range(len(neuron_score_dict[k])):
-    #     print(22, neuron_score_dict[k][i].shape)
-    # 11 Conv_0_act/__call__ 1
-    # 22 (32,)
-    # 11 Conv_1_act/__call__ 1
-    # 22 (64,)
-    # 11 Conv_2_act/__call__ 1
-    # 22 (64,)
-    # 11 Dense_0_act/__call__ 1
-    # 22 (512,)
-    # 11 final_layer_act/__call__ 1
-    # 22 (6,)
+    activation_dict = flax.traverse_util.flatten_dict(intermediates, sep='/')
+    param_dict = flax.traverse_util.flatten_dict(params, sep='/') # TODO (ZW) log the magnitude of weights
 
     if self.historical_dormant_mask is None:
       self.prev_neuron_score = neuron_score_dict
@@ -324,24 +329,33 @@ class BaseRecycler:
     else:
       self.n_log_historical_overlap += 1
       log_dict = {}
-      for prev_k_score, current_k_score in zip(
-          self.prev_neuron_score.items(), neuron_score_dict.items()
+      layer_count = 0
+      for prev_k_score, current_k_score, activation_k in zip(
+          self.prev_neuron_score.items(), neuron_score_dict.items(), activation_dict.items()
       ): # layer k
+        layer_count += 1
         # print(prev_k_score[0], prev_k_score[1][0].shape) # Conv_0_act/__call__ (32,)
         _, prev_score = prev_k_score
         k, score = current_k_score
-        prev_score, score = prev_score[0], score[0]
-        prev_mask = prev_score <= self.dead_neurons_threshold
+        _, activation = activation_k
+        # print(activation_dict[k][0].shape, prev_score[0].shape, score[0].shape)(256, 21, 21, 32) (32,) (32,)
+        prev_score, score, activation = prev_score[0], score[0], activation[0]
+        reduce_axes = list(range(activation.ndim - 1))
+        activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
+        prev_mask = self._compute_mask(prev_score)
         # we count the dead neurons which remains dead in the current step.
-        curr_mask = score <= self.dead_neurons_threshold
+        curr_mask = self._compute_mask(score)
+        prev_intersect = curr_mask & prev_mask
+        prev_intersect_count = jnp.count_nonzero(prev_intersect)
+        prev_count = jnp.count_nonzero(prev_mask)
 
         if k not in self.historical_dormant_mask.keys(): # first log
           self.historical_dormant_mask[k] = prev_mask # non-dormant entries: False
-          self.dormant_times[k] = jnp.zeros_like(prev_mask).astype(float)
+          # self.dormant_times[k] = jnp.zeros_like(prev_mask).astype(float)
           # self.degree_of_dormancy[k] = jnp.zeros_like(curr_mask).astype(float)
-        self.dormant_times[k] += curr_mask.astype(float)
+        # self.dormant_times[k] += curr_mask.astype(float)
         # TODO (ZW) what if we reset a neuron only if its degree_of_dormancy has reached a threshold
-        degree_of_dormancy = self.dormant_times[k] / self.n_log_historical_overlap
+        # degree_of_dormancy = self.dormant_times[k] / self.n_log_historical_overlap
         # avg_degree_of_dormancy = degree_of_dormancy.mean()
 
         pre_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
@@ -356,126 +370,70 @@ class BaseRecycler:
         # denominator = max(curr_dead_count, hist_dead_count) # This implements the max-pre-merging-set-as-denominator metric
 
         # self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask)
-
         percent = (
             (float(intersected_count) / denominator.item())
             if denominator
             else 0.0
         )
-        print('percent: {}'.format(percent))
+        prev_intersect_percent = (
+          (float(prev_intersect_count) / prev_count)
+          if prev_count
+          else 0.0
+        )
+        if self.redo_or_prune_massive_neurons:
+          nondead_mask = score < self.massive_neurons_threshold
+        else:
+          nondead_mask = score > self.dead_neurons_threshold
+
         log_dict[f'historical_overlap_rate/{k[:-9]}'] = float(percent) * 100.0
 
-        # track average score of recycled neurons from last step and
-        # the average of non dead in the current step.
-        # nondead_mask = score > self.dead_neurons_threshold
-        # log_dict[f'mean_score_recycled/{k[:-9]}'] = float(
-        #     jnp.mean(score[prev_mask])
-        # )
-        # log_dict[f'mean_score_nondead/{k[:-9]}'] = float(
-        #     jnp.mean(score[nondead_mask])
-        # )
+        def top_3_elements(arr):
+          # Sort the array in descending order and take the first 3 elements
+          top_3_indices = jnp.argsort(arr)[::-1][:3]
+          top_3_values = arr[top_3_indices]
+          return top_3_values, top_3_indices
+        top3_values, top3_indices = top_3_elements(score)
+
         if config['use_wandb']:
           wandb.log({'{}_historical_overlap_rate'.format(k[:-9]): percent, 'grad_step': update_step})
           wandb.log({'{}_current_historical_ratio(pre_merging)'.format(k[:-9]): (curr_dead_count / pre_hist_dead_count).item(), 'grad_step': update_step})
           wandb.log({'{}_historical_dormant_count(post_merging)'.format(k[:-9]): post_hist_dead_count.item(), 'grad_step': update_step})
-
+          wandb.log({'{}_dead_intersected_percent'.format(k[:-9]): prev_intersect_percent, 'grad_step': update_step})
+          
+          wandb.log({'{}_mean_activation_recycled'.format(k[:-9]): jnp.mean(activation[prev_mask]), 'grad_step': update_step})
+          wandb.log({'{}_mean_activation_nondead'.format(k[:-9]): jnp.mean(activation[nondead_mask]), 'grad_step': update_step})
+          wandb.log({'{}_mean_activation_dead'.format(k[:-9]): jnp.mean(activation[curr_mask]), 'grad_step': update_step})
+          wandb.log({'{}_top1_activation'.format(k[:-9]): top3_values[0], 'grad_step': update_step})
+          wandb.log({'{}_top2_activation'.format(k[:-9]): top3_values[1], 'grad_step': update_step})
+          wandb.log({'{}_top3_activation'.format(k[:-9]): top3_values[2], 'grad_step': update_step})
+          wandb.log({'{}_top1_idx'.format(k[:-9]): top3_indices[0], 'grad_step': update_step})
+          wandb.log({'{}_top2_idx'.format(k[:-9]): top3_indices[1], 'grad_step': update_step})
+          wandb.log({'{}_top3_idx'.format(k[:-9]): top3_indices[2], 'grad_step': update_step})
+          wandb.log({'layer {} dormant neuron percentage'.format(layer_count): float(curr_dead_count) / jnp.size(score), 'grad_step': update_step})
       self.prev_neuron_score = neuron_score_dict
+      if config['use_wandb']:
+        q = jnp.array([0.25, 0.5, 0.75]) # quantiles
+        for k in self.reset_layers:
+          param_key = 'params/' + k + '/kernel'
+          abs_param = jnp.abs(param_dict[param_key]) # (8, 8, 4, 32)(4, 4, 32, 64)(3, 3, 64, 64)(7744, 512)(512, 6)
+          wandb.log({'{}_w_mean'.format(k): abs_param.mean(), 'grad_step': update_step})
+          quantiles = jnp.quantile(abs_param, q)
+          wandb.log({'{}_w_1qt'.format(k): quantiles[0], 'grad_step': update_step})
+          wandb.log({'{}_w_2qt'.format(k): quantiles[1], 'grad_step': update_step})
+          wandb.log({'{}_w_3qt'.format(k): quantiles[2], 'grad_step': update_step})
+          bias_key = 'params/' + k + '/bias'
+          abs_bias = jnp.abs(param_dict[bias_key])
+          wandb.log({'{}_b_mean'.format(k): abs_bias.mean(), 'grad_step': update_step})
+          quantiles = jnp.quantile(abs_bias, q)
+          wandb.log({'{}_b_1qt'.format(k): quantiles[0], 'grad_step': update_step})
+          wandb.log({'{}_b_2qt'.format(k): quantiles[1], 'grad_step': update_step})
+          wandb.log({'{}_b_3qt'.format(k): quantiles[2], 'grad_step': update_step})
     return log_dict
 
   def _score2mask(self, activation, param, next_param, key):
     del key, param, next_param
     score = self.estimate_neuron_score(activation)
     return score <= self.dead_neurons_threshold
-
-  def log_outgoing_weights_magnitude(self, param_dict, activations_dict, key):
-    """log: # TODO (ZW)
-    1. magnitude of dormant neurons's outgoing_weights (in each layer)
-    2. magnitude of the rest neurons' outgoing_weights in the same layer
-    """
-    incoming_mask_dict = {
-        k: jnp.zeros_like(p) if p.ndim != 1 else None
-        for k, p in param_dict.items()
-    }
-    outgoing_mask_dict = {
-        k: jnp.zeros_like(p) if p.ndim != 1 else None
-        for k, p in param_dict.items()
-    }
-    ingoing_random_keys_dict = {k: None for k in param_dict}
-    outgoing_random_keys_dict = (
-        {k: None for k in param_dict}
-        if self.init_method_outgoing == 'random'
-        else {}
-    )
-
-    # prepare mask of incoming and outgoing recycled connections
-    for k in self.reset_layers:
-      param_key = 'params/' + k + '/kernel'
-      param = param_dict[param_key]
-      # This won't work for DRQ, since returned keys can be a list.
-      # We don't support that at the moment.
-      next_key = self.next_layers[k]
-      if isinstance(next_key, list):
-        next_key = next_key[0]
-      next_param = param_dict['params/' + next_key + '/kernel']
-      activation = activations_dict[k + '_act/__call__'][0]
-      # TODO(evcu) Maybe use per_layer random keys here.
-      neuron_mask = self._score2mask(activation, param, next_param, key)
-
-      # the for loop handles the case where a layer has multiple next layers
-      # like the case in DrQ where the output layer has multihead.
-      next_keys = (
-          self.next_layers[k]
-          if isinstance(self.next_layers[k], list)
-          else [self.next_layers[k]]
-      )
-      for next_k in next_keys:
-        next_param_key = 'params/' + next_k + '/kernel'
-        next_param = param_dict[next_param_key]
-        incoming_mask, outgoing_mask = self.create_mask_helper(
-            neuron_mask, param, next_param
-        )
-        incoming_mask_dict[param_key] = incoming_mask
-        outgoing_mask_dict[next_param_key] = outgoing_mask
-        key, subkey = random.split(key)
-        ingoing_random_keys_dict[param_key] = subkey
-        if self.init_method_outgoing == 'random':
-          key, subkey = random.split(key)
-          outgoing_random_keys_dict[next_param_key] = subkey
-
-    #     if self.prune_dormant_neurons: # NOTE (ZW) stop the gradients flowing through dormant neurons
-    #       # NOTE (ZW) Log the magnitude of outgoing weights of dormant neurons
-    #       print('Pruning {} outgoing weights at layer {}'.format(outgoing_mask.sum(), k))
-    #       next_param = jnp.where(~outgoing_mask, next_param, jax.lax.stop_gradient(next_param))
-        
-    #       if self.first_time_pruning and (jnp.count_nonzero(outgoing_mask) > 0):
-    #         self.next_param_key = next_param_key
-    #         self.outgoing_mask = outgoing_mask
-    #         self.first_time_pruning = False
-
-    # if (not self.first_time_pruning) and self.prune_dormant_neurons:
-    #   print(jnp.count_nonzero(self.outgoing_mask), self.next_param_key)
-    #   frozen_params = jnp.where(self.outgoing_mask == 1, jnp.zeros_like(param_dict[self.next_param_key]), param_dict[self.next_param_key])
-    #   print(jnp.linalg.vector_norm(frozen_params).item())
-    #   import time
-    #   time.sleep(2)
-    #   if config['use_wandb']:
-    #     wandb.log({'frozen_params_norm': jnp.linalg.vector_norm(frozen_params).item(), 'grad_step': self._last_update_step})
-
-      # reset bias
-      bias_key = 'params/' + k + '/bias'
-      new_bias = jnp.zeros_like(param_dict[bias_key])
-      param_dict[bias_key] = jnp.where(
-          neuron_mask, new_bias, param_dict[bias_key]
-      ) # True entities in param_dict[bias_key] will be replaced by new_bias
-
-    return (
-        incoming_mask_dict,
-        outgoing_mask_dict,
-        ingoing_random_keys_dict,
-        outgoing_random_keys_dict,
-        param_dict,
-    )
-
 
   def log_dead_neurons_count(self, intermediates, update_step):
     """log dead neurons in each layer.
@@ -637,6 +595,8 @@ class NeuronRecycler(BaseRecycler):
       outgoing_scale=1.0,
       network='nature',
       prune_dormant_neurons=False,
+      massive_neurons_threshold=100,
+      redo_or_prune_massive_neurons=False,
       **kwargs,
   ):
     super(NeuronRecycler, self).__init__(all_layers_names, **kwargs)
@@ -646,6 +606,8 @@ class NeuronRecycler(BaseRecycler):
     self.outgoing_scale = outgoing_scale
     self.prune_dormant_neurons = prune_dormant_neurons
     self.first_time_pruning = True
+    self.massive_neurons_threshold = massive_neurons_threshold
+    self.redo_or_prune_massive_neurons = redo_or_prune_massive_neurons
     # prepare a dict that has pointer to next layer give a layer name
     # this is needed because neuron recycle reinitalizes both sides
     # (incoming and outgoing weights) of a neuron and needs a point to the
@@ -667,13 +629,13 @@ class NeuronRecycler(BaseRecycler):
         if 'Conv_1' in layer or 'Conv_3' in layer or 'Dense' in layer:
           self.reset_layers.append(layer)
 
-  def intersected_dead_neurons_with_last_reset(
-      self, intermediates, update_step
+  def log_dead_neurons_statistics(
+      self, intermediates, update_step, params
   ):
     if self.is_reset(update_step):
-      log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
-      self.log_historical_dead_neuron_overlapping(intermediates, update_step)
-      return log_dict
+      # log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
+      self.log_historical_dead_neuron_overlapping(intermediates, params, update_step)
+      return
     else:
       return None
 
@@ -815,20 +777,6 @@ class NeuronRecycler(BaseRecycler):
       params = weight_zero_reset_fn(params, outgoing_mask)
     else:
       raise ValueError(f'Invalid init method: {self.init_method_outgoing}')
-    
-    def has_dormant_neurons(mask):
-      for k in outgoing_mask.keys():
-        for k1 in outgoing_mask[k]:
-          for k2 in outgoing_mask[k][k1]:
-            if k2 == 'kernel':
-              has_dormant_neurons = jnp.count_nonzero(outgoing_mask[k][k1][k2]) > 0
-              if has_dormant_neurons:
-                return True
-      return False
-    # if self.first_time_pruning and has_dormant_neurons(outgoing_mask):
-    #   self.outgoing_mask = outgoing_mask
-    #   self.first_time_pruning = False
-    #   params_norm = jnp.where(self.outgoing_mask == 1, new_param, param)
 
     # reset mu, nu of adam optimizer for recycled weights.
     reset_momentum_fn = jax.jit(functools.partial(jax.tree_util.tree_map, reset_momentum))
@@ -877,45 +825,15 @@ class NeuronRecycler(BaseRecycler):
         outgoing_random_keys_dict,
         param_dict,
     ) = self.create_masks(param_dict, activations_score_dict, key)
-
-    # params = flax.core.freeze(
-    #     flax.traverse_util.unflatten_dict(param_dict, sep='/')
-    # )
-    # if self.init_method_outgoing == 'random':
-    #   outgoing_random_keys = flax.core.freeze(
-    #       flax.traverse_util.unflatten_dict(outgoing_random_keys_dict, sep='/')
-    #   )
-
-    # # reset outgoing weights
-    # outgoing_mask = flax.core.freeze(
-    #     flax.traverse_util.unflatten_dict(outgoing_mask_dict, sep='/')
-    # )
-    # if self.init_method_outgoing == 'random':
-    #   reinit_fn = functools.partial(
-    #       weight_reinit_random,
-    #       weight_scaling=self.weight_scaling,
-    #       scale=self.outgoing_scale,
-    #       weights_type='outgoing',
-    #   )
-    #   weight_random_reset_fn = jax.jit(
-    #       functools.partial(jax.tree_util.tree_map, reinit_fn)
-    #   )
-    #   params = weight_random_reset_fn(
-    #       params, outgoing_mask, outgoing_random_keys
-    #   )
-    # elif self.init_method_outgoing == 'zero':
-    #   weight_zero_reset_fn = jax.jit(
-    #       functools.partial(jax.tree_util.tree_map, weight_reinit_zero)
-    #   )
-    #   params = weight_zero_reset_fn(params, outgoing_mask)
-    # else:
-    #   raise ValueError(f'Invalid init method: {self.init_method_outgoing}')
     return params
 
   def _score2mask(self, activation, param, next_param, key):
     del key, param, next_param
     score = self.estimate_neuron_score(activation)
-    return score <= self.dead_neurons_threshold
+    if self.redo_or_prune_massive_neurons:
+      return score >= self.massive_neurons_threshold
+    else:
+      return score <= self.dead_neurons_threshold
 
   def create_masks(self, param_dict, activations_dict, key):
     """create the masks for recycled weights based on neurons scores.

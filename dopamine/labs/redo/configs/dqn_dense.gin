@@ -3,7 +3,7 @@ include 'dopamine/jax/agents/dqn/configs/dqn.gin'
 import dopamine.labs.redo.recycled_dqn_agents
 import dopamine.labs.redo.weight_recyclers
 
-Runner.num_iterations = 800 # 250000 env steps per iter
+Runner.num_iterations = 8000 # 250000 env steps per iter
 create_agent_recycled.agent_name = 'dqn'
 # Empty list allows all.
 JaxDQNAgent.collector_allowlist = []
@@ -19,27 +19,31 @@ BaseRecycler.reset_end_step = 2_500_000
 
 
 # NOTE (ZW) added
-atari_lib.create_atari_environment.game_name = 'DemonAttack'
+atari_lib.create_atari_environment.game_name = 'Seaquest'
 RecycledDQNAgent.is_debugging = True # log overlapping rates
 
-RecycledDQNAgent.reset_mode = 'neurons'
+RecycledDQNAgent.reset_mode = False
 create_agent_recycled.agent_name = 'dqn'
-RecycledDQNAgent.network = 'nature_with_one_extra_ffn'  # nature_with_one_extra_ffn
+RecycledDQNAgent.network = 'nature_scaled_penultimate' #nature_scaled_penultimate
+RecycledDQNAgent.width = 1
 
 JaxDQNAgent.update_period = 4
 JaxDQNAgent.target_update_period = 8000  # agent steps
 BaseRecycler.logging_period = 20_000
-BaseRecycler.dead_neurons_threshold = 0.025
+BaseRecycler.dead_neurons_threshold = 0.0
 
-NeuronRecycler.dead_neurons_threshold = 0.025
+NeuronRecycler.dead_neurons_threshold = 0.1
+NeuronRecycler.massive_neurons_threshold = 50
+NeuronRecycler.redo_or_prune_massive_neurons = False
+
 NeuronRecycler.reset_period = 1_000
 # NeuronRecycler.reset_start_step = 1
-NeuronRecycler.reset_end_step = 1_000_000_000
-NeuronRecycler.prune_dormant_neurons = True
+NeuronRecycler.reset_end_step = 1000_000_000_000
+NeuronRecycler.prune_dormant_neurons = False
 
 # pruner configs
-create_updater_from_config.pruner_type='activation'
-create_updater_from_config.sparsity_type='dormant_0.025' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
+create_updater_from_config.pruner_type='magnitude' # massive_activation
+create_updater_from_config.sparsity_type='dormant_0.1' # NOTE if multiple values: 'nm_2,4', edit this in jaxpruner.api.py
 create_updater_from_config.dist_type='erk'
 #create_updater_from_config.update_start_step=50000
 #create_updater_from_config.update_end_step=2000000
@@ -56,3 +60,4 @@ BaseRecycler.reset_start_step = 1
 BaseRecycler.reset_end_step = 1_000_000_000
 
 use_wandb = True
+cuda_num = "0"

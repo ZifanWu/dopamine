@@ -152,6 +152,7 @@ def main(unused_argv):
   base_dir = FLAGS.base_dir
   gin_files = FLAGS.gin_files
   gin_bindings = FLAGS.gin_bindings
+  # run_experiment.parse_gin_file_and_maybe_init_wandb(gin_files)
   run_experiment.load_gin_configs(gin_files, gin_bindings)
   runner = create_runner_recycled(base_dir)
   runner.run_experiment()
@@ -160,7 +161,6 @@ def main(unused_argv):
 if __name__ == '__main__':
   flags.mark_flag_as_required('base_dir')
   import os
-  # os.environ['XLA_PYTHON_CLIENT_MEM_FRACTION'] = 0.3
   os.environ['XLA_PYTHON_CLIENT_PREALLOCATE'] ='false'
   os.environ['XLA_PYTHON_CLIENT_ALLOCATOR']='platform'
   os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'

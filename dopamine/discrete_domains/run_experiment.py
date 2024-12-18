@@ -48,8 +48,10 @@ import socket
 from pathlib import Path
 import os
 import re
+import wandb
 
-
+config = {}
+# def parse_gin_file_and_maybe_init_wandb(gin_files):
 def parse_gin_file(file_path):
   config_dict = {}
   with open(file_path, 'r') as file:
@@ -73,9 +75,10 @@ def parse_gin_file(file_path):
                   
                   config_dict[key] = value
   return config_dict
-
-gin_file_paths = ['./dopamine/labs/redo/configs/dqn_dense.gin']#, './dopamine/jax/agents/dqn/configs/dqn.gin']
-config = {}
+# gin_file_paths = gin_files
+# global config
+# config = {}
+gin_file_paths = ["dopamine/labs/redo/configs/dqn_dense.gin"]
 for path in gin_file_paths:
   config = {**config, **parse_gin_file(path)}
 # config = parse_gin_file(gin_file_path)
@@ -86,7 +89,6 @@ if not Path(run_dir).exists():
 import numpy as np
 rnd_num = np.random.randint(0, 100000, size=1)[0]
 if config['use_wandb']:
-  import wandb
   wandb.init(config=config,
             project='dormant-neuron',
             entity='zarzard',
@@ -98,6 +100,8 @@ if config['use_wandb']:
             # sync_tensorboard=True,
             monitor_gym=True,
             save_code=True)
+
+os.environ["CUDA_VISIBLE_DEVICES"] = str(config['cuda_num'])
 
 def load_gin_configs(gin_files, gin_bindings):
   """Loads gin configuration files.
@@ -419,6 +423,7 @@ class Runner(object):
       The observation, reward, and is_terminal values returned from the
         environment.
     """
+    action = action.item()
     observation, reward, is_terminal, _ = self._environment.step(action)
     return observation, reward, is_terminal
 
@@ -510,7 +515,8 @@ class Runner(object):
         # We use sys.stdout.write instead of logging so as to flush frequently
         # without generating a line break.
         sys.stdout.write(
-            'Steps executed: {} '.format(step_count)
+            'Seed: {}'.format(rnd_num)
+            + 'Steps executed: {} '.format(step_count)
             + 'Episode length: {} '.format(episode_length)
             + 'Return: {}\r'.format(episode_return)
         )

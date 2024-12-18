@@ -132,7 +132,9 @@ class RecycledAtari100kRainbowAgent(
     else:
       # Uniform weights if not using prioritized replay.
       loss_weights = jnp.ones(states.shape[0])
-
+    # print(type(self.replay_elements['action']))
+    # print(type(self.replay_elements['reward']))
+    # print(type(self.replay_elements['terminal']))
     (self.optimizer_state, self.online_params, loss, mean_loss, self._rng) = (
         full_rainbow_agent.train(
             self.network_def,
