@@ -198,7 +198,7 @@ class BaseRecycler:
     return False
 
   def is_intermediated_required(self, update_step):
-    return self.is_logging_step(update_step) # TODO debugging
+    return True#self.is_logging_step(update_step) # TODO debugging
 
   def is_logging_step(self, step):
     return step % self.logging_period == 0
@@ -237,28 +237,6 @@ class BaseRecycler:
       log_dict: dict contains the percentage of intersection
     """
     score_tree = jax.tree_util.tree_map(self.estimate_neuron_score, intermediates)
-    # for k in intermediates.keys():
-    #   print(11, k)
-    #   for k1 in intermediates[k].keys():
-    #     print(22, len(intermediates[k][k1]))
-    #     print(intermediates[k][k1][0].shape)
-    # import time
-    # time.sleep(222)
-    # 11 Conv_0_act
-    # 22 1
-    # (32,) # in Conv layers, the number of neurons is the size of the feature map
-    # 11 Conv_1_act
-    # 22 1
-    # (64,)
-    # 11 Conv_2_act
-    # 22 1
-    # (64,)
-    # 11 Dense_0_act
-    # 22 1
-    # (512,)
-    # 11 final_layer_act
-    # 22 1
-    # (6,)
     neuron_score_dict = flax.traverse_util.flatten_dict(score_tree, sep='/')
     activation_dict = flax.traverse_util.flatten_dict(intermediates, sep='/')
     preactivation_dict = flax.traverse_util.flatten_dict(preactivations, sep='/')
@@ -290,18 +268,20 @@ class BaseRecycler:
         prev_score, score, activation, preactivation = prev_score[0], score[0], \
                                                        activation[0], preactivation[0]
         reduce_axes = list(range(activation.ndim - 1)) # more than 2 dims when it's a CNN
+        # activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
         activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
         preactivation = jnp.mean(preactivation, axis=reduce_axes)
         prev_masks = self._compute_mask(prev_score)
         # we count the dead neurons which remains dead in the current step.
         curr_masks = self._compute_mask(score)
         curr_nondead_masks = self._compute_nondead_mask(score)
-        
-        
+
         if config['use_wandb'] and 'Dense' in k:
           wandb.log({'{}_mean_activation'.format(k[:-9]): jnp.mean(activation), 'grad_step': update_step})
           wandb.log({'{}_mean_preactivation'.format(k[:-9]): jnp.mean(preactivation), 'grad_step': update_step})
-          wandb.log({'{}_var_preactivation'.format(k[:-9]): jnp.std(preactivation), 'grad_step': update_step})
+          wandb.log({'{}_var_preactivation'.format(k[:-9]): jnp.var(preactivation), 'grad_step': update_step})
+          wandb.log({'{}_saturated_count'.format(k[:-9]): jnp.count_nonzero(preactivation <= 0), 'grad_step': update_step})
+          wandb.log({'{}_saturated_percentage'.format(k[:-9]): float(jnp.count_nonzero(preactivation <= 0)) / jnp.size(preactivation), 'grad_step': update_step})
           q = jnp.array([0.25, 0.5, 0.75])
           quantiles = jnp.quantile(preactivation, q)
           wandb.log({'{}_preact_1qt'.format(k[:-9]): quantiles[0], 'grad_step': update_step})
@@ -317,8 +297,6 @@ class BaseRecycler:
 
           if k not in self.historical_dormant_mask.keys(): # first log
             self.historical_dormant_mask[k] = prev_mask # non-dormant entries: False
-            # self.dormant_times[k] = jnp.zeros_like(prev_mask).astype(float)
-            # self.degree_of_dormancy[k] = jnp.zeros_like(curr_mask).astype(float)
 
           pre_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
           self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask) # NOTE (ZW) merging the current dormant set into the historical set
@@ -349,11 +327,13 @@ class BaseRecycler:
             wandb.log({'{}_{}_historical_dormant_count(post_merging)'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): post_hist_dead_count.item(), 'grad_step': update_step})
             wandb.log({'{}_{}_dead_intersected_percent'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): prev_intersect_percent, 'grad_step': update_step})
             wandb.log({'{}_{}_dormant_percentage'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): float(curr_dead_count) / jnp.size(score), 'grad_step': update_step})
-            
+            wandb.log({'{}_{}_count_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.count_nonzero(prev_mask), 'grad_step': update_step})
+            wandb.log({'{}_{}_count_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.count_nonzero(curr_mask), 'grad_step': update_step})
+
             wandb.log({'{}_{}_mean_activation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[prev_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_activation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_nondead_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_activation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_mask]), 'grad_step': update_step})
-            
+
             wandb.log({'{}_{}_mean_preactivation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[prev_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_preactivation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[curr_nondead_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_preactivation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[curr_mask]), 'grad_step': update_step})
@@ -366,7 +346,7 @@ class BaseRecycler:
           # least3_indices = indices[-3:]
           top_3_values = arr[top_3_indices]
           return top_3_values, top_3_indices
-        top3_values, top3_indices = top_3_elements(score)
+        top3_values, top3_indices = top_3_elements(activation)
         if config['use_wandb'] and 'Dense' in k:
           wandb.log({'{}_top1_activation'.format(k[:-9]): top3_values[0], 'grad_step': update_step})
           wandb.log({'{}_top2_activation'.format(k[:-9]): top3_values[1], 'grad_step': update_step})

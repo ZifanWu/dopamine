@@ -257,7 +257,6 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       self.weight_recycler.maybe_log_dead_neurons_statistics(
               intermediates, preactivations, update_step, online_params
           )
-      # self._log_stats(log_dict_intersected, update_step)
 
     # Neuron/layer recyling.
     self._rng, key = jax.random.split(self._rng)
