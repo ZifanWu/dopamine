@@ -419,7 +419,7 @@ class NatureDQNNetworkWithOneExtraFFNandScalablePNLayer(nn.Module):
   def _record_preactivations(self, x, layer):
     if self.is_initializing():
       name = '/'.join(layer.scope.path)
-      self.layer_names.append(name)
+      # self.layer_names.append(name)
     return IdentityLayer(name=f'{layer.name}_preact')(x)
 
   @nn.compact

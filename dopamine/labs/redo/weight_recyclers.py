@@ -206,7 +206,7 @@ class BaseRecycler:
   def maybe_log_dead_neurons_statistics(
       self, intermediates, preactivations, update_step, params
   ):
-    if self.is_logging_step(update_step): # TODO debugging
+    if True:#self.is_logging_step(update_step): # TODO debugging
       self.log_historical_dead_neuron_overlapping(intermediates, preactivations, params, update_step)
       return
     else:
@@ -304,9 +304,9 @@ class BaseRecycler:
           wandb.log({'{}_var_preactivation'.format(k[:-9]): jnp.std(preactivation), 'grad_step': update_step})
           q = jnp.array([0.25, 0.5, 0.75])
           quantiles = jnp.quantile(preactivation, q)
-          wandb.log({'{}_preact_1qt'.format(k): quantiles[0], 'grad_step': update_step})
-          wandb.log({'{}_preact_2qt'.format(k): quantiles[1], 'grad_step': update_step})
-          wandb.log({'{}_preact_3qt'.format(k): quantiles[2], 'grad_step': update_step})
+          wandb.log({'{}_preact_1qt'.format(k[:-9]): quantiles[0], 'grad_step': update_step})
+          wandb.log({'{}_preact_2qt'.format(k[:-9]): quantiles[1], 'grad_step': update_step})
+          wandb.log({'{}_preact_3qt'.format(k[:-9]): quantiles[2], 'grad_step': update_step})
         thres_idx = 0
         for curr_mask, prev_mask, curr_nondead_mask in zip(curr_masks, prev_masks, curr_nondead_masks):
           if 'Dense_0' in k:
@@ -576,7 +576,7 @@ class NeuronRecycler(BaseRecycler):
   def is_intermediated_required(self, update_step):
     is_logging = self.is_logging_step(update_step)
     is_update_iter = self.is_update_iter(update_step)
-    return is_logging or is_update_iter
+    return is_logging or is_update_iter # TODO debugging
 
   def update_reset_layers(self, reset_start_layer_idx):
     self.reset_layers = self.all_layers_names[reset_start_layer_idx:]

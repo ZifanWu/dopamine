@@ -19,13 +19,13 @@ BaseRecycler.reset_end_step = 2_500_000
 
 
 # NOTE (ZW) added
-atari_lib.create_atari_environment.game_name = 'Qbert'
+atari_lib.create_atari_environment.game_name = 'SpaceInvaders'
 RecycledDQNAgent.is_debugging = True # log overlapping rates
 
-RecycledDQNAgent.reset_mode = False
+RecycledDQNAgent.reset_mode = 'neurons'
 create_agent_recycled.agent_name = 'dqn'
 RecycledDQNAgent.network = 'nature_with_one_extra_ffn_and_scalable_pn_layer' #nature_scaled_penultimate nature_with_one_extra_ffn_and_scalable_pn_layer
-RecycledDQNAgent.width = 0.5
+RecycledDQNAgent.width = 1
 
 JaxDQNAgent.update_period = 4
 JaxDQNAgent.target_update_period = 8000  # agent steps
