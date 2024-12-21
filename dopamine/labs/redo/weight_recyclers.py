@@ -147,7 +147,7 @@ class BaseRecycler:
   def __init__(
       self,
       all_layers_names,
-      dead_neurons_threshold=0.1,
+      dead_neurons_thresholds=[0, 0.025, 0.1],
       reset_start_layer_idx=0,
       reset_period=200_000,
       reset_start_step=0,
@@ -158,7 +158,7 @@ class BaseRecycler:
       redo_or_prune_massive_neurons=False,
   ):
     self.all_layers_names = all_layers_names
-    self.dead_neurons_threshold = dead_neurons_threshold
+    self.dead_neurons_thresholds = dead_neurons_thresholds
     self.reset_layers = all_layers_names[reset_start_layer_idx:]
     self.reset_period = reset_period
     self.reset_start_step = reset_start_step
@@ -198,23 +198,15 @@ class BaseRecycler:
     return False
 
   def is_intermediated_required(self, update_step):
-    return True #self.is_logging_step(update_step) # TODO debugging
+    return self.is_logging_step(update_step) # TODO debugging
 
   def is_logging_step(self, step):
     return step % self.logging_period == 0
 
-  def maybe_log_deadneurons(self, update_step, intermediates):
-    is_logging = self.is_logging_step(update_step)
-    if is_logging: # TODO debugging
-      return self.log_dead_neurons_count(intermediates, update_step)
-    else:
-      return None
-
-  def log_dead_neurons_statistics(
+  def maybe_log_dead_neurons_statistics(
       self, intermediates, update_step, params
   ):
-    if True:#self.is_logging_step(update_step): # TODO debugging
-      # log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
+    if self.is_logging_step(update_step): # TODO debugging
       self.log_historical_dead_neuron_overlapping(intermediates, params, update_step)
       return
     else:
@@ -224,64 +216,16 @@ class BaseRecycler:
     if self.redo_or_prune_massive_neurons:
       return score_dict >= self.massive_neurons_threshold
     else:
-      return score_dict <= self.dead_neurons_threshold
-
-  def log_intersected_dead_neurons(self, intermediates, update_step):
-    """Track intersected dead neurons with last logging/reset step.
-
-    Args:
-      intermediates: current intermediates
-
-    Returns:
-      log_dict: dict contains the percentage of intersection
-    """
-    score_tree = jax.tree_util.tree_map(self.estimate_neuron_score, intermediates)
-    neuron_score_dict = flax.traverse_util.flatten_dict(score_tree, sep='/')
-
-    if self.prev_neuron_score is None:
-      self.prev_neuron_score = neuron_score_dict
-      log_dict = None
-    else:
-      log_dict = {}
-      for prev_k_score, current_k_score in zip(
-          self.prev_neuron_score.items(), neuron_score_dict.items()
-      ):
-        _, prev_score = prev_k_score
-        k, score = current_k_score
-        prev_score, score = prev_score[0], score[0]
-        prev_mask = self._compute_mask(prev_score)
-        # we count the dead neurons which remains dead in the current step.
-        curr_mask = self._compute_mask(score)
-        intersected_mask = (prev_mask) & (curr_mask)
-        prev_dead_count = jnp.count_nonzero(prev_mask)
-        intersected_count = jnp.count_nonzero(intersected_mask)
-
-        percent = (
-            (float(intersected_count) / prev_dead_count)
-            if prev_dead_count
-            else 0.0
-        )
-        log_dict[f'dead_intersected_percent/{k[:-9]}'] = float(percent) * 100.0
-
-        # track average score of recycled neurons from last step and
-        # the average of non dead in the current step.
-        if self.redo_or_prune_massive_neurons:
-          nondead_mask = score < self.massive_neurons_threshold
-        else:
-          nondead_mask = score > self.dead_neurons_threshold
-        log_dict[f'mean_score_recycled/{k[:-9]}'] = float(
-            jnp.mean(score[prev_mask])
-        )
-        log_dict[f'mean_score_nondead/{k[:-9]}'] = float(
-            jnp.mean(score[nondead_mask])
-        )
-        if config['use_wandb']:
-          wandb.log({'{}_dead_intersected_percent'.format(k[:-9]): percent, 'grad_step': update_step})
-          wandb.log({'{}_mean_score_nondead'.format(k[:-9]): jnp.mean(score[nondead_mask]), 'grad_step': update_step})
-          wandb.log({'{}_mean_score_dead'.format(k[:-9]): jnp.mean(score[curr_mask]), 'grad_step': update_step})
-
-      self.prev_neuron_score = neuron_score_dict
-    return log_dict
+      masks = []
+      for threshold in self.dead_neurons_thresholds:
+        masks.append(score_dict <= threshold)
+      return masks
+      
+  def _compute_nondead_mask(self, score_dict):
+    masks = []
+    for threshold in self.dead_neurons_thresholds:
+      masks.append(score_dict > threshold)
+    return masks
   
   def log_historical_dead_neuron_overlapping(self, intermediates, params, update_step):
     """Track the overlapping rate of dead neurons between the historical set/and the current step.
@@ -317,7 +261,7 @@ class BaseRecycler:
     # (6,)
     neuron_score_dict = flax.traverse_util.flatten_dict(score_tree, sep='/')
     activation_dict = flax.traverse_util.flatten_dict(intermediates, sep='/')
-    param_dict = flax.traverse_util.flatten_dict(params, sep='/') # TODO (ZW) log the magnitude of weights
+    param_dict = flax.traverse_util.flatten_dict(params, sep='/')
 
     if self.historical_dormant_mask is None:
       self.prev_neuron_score = neuron_score_dict
@@ -330,6 +274,7 @@ class BaseRecycler:
       self.n_log_historical_overlap += 1
       log_dict = {}
       layer_count = 0
+      dense0_dormancy_masks = []
       for prev_k_score, current_k_score, activation_k in zip(
           self.prev_neuron_score.items(), neuron_score_dict.items(), activation_dict.items()
       ): # layer k
@@ -342,146 +287,121 @@ class BaseRecycler:
         prev_score, score, activation = prev_score[0], score[0], activation[0]
         reduce_axes = list(range(activation.ndim - 1))
         activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
-        prev_mask = self._compute_mask(prev_score)
+        prev_masks = self._compute_mask(prev_score)
         # we count the dead neurons which remains dead in the current step.
-        curr_mask = self._compute_mask(score)
-        prev_intersect = curr_mask & prev_mask
-        prev_intersect_count = jnp.count_nonzero(prev_intersect)
-        prev_count = jnp.count_nonzero(prev_mask)
+        curr_masks = self._compute_mask(score)
+        curr_nondead_masks = self._compute_nondead_mask(score)
 
-        if k not in self.historical_dormant_mask.keys(): # first log
-          self.historical_dormant_mask[k] = prev_mask # non-dormant entries: False
-          # self.dormant_times[k] = jnp.zeros_like(prev_mask).astype(float)
-          # self.degree_of_dormancy[k] = jnp.zeros_like(curr_mask).astype(float)
-        # self.dormant_times[k] += curr_mask.astype(float)
-        # TODO (ZW) what if we reset a neuron only if its degree_of_dormancy has reached a threshold
-        # degree_of_dormancy = self.dormant_times[k] / self.n_log_historical_overlap
-        # avg_degree_of_dormancy = degree_of_dormancy.mean()
+        thres_idx = 0
+        for curr_mask, prev_mask, curr_nondead_mask in zip(curr_masks, prev_masks, curr_nondead_masks):
+          if 'Dense_0' in k:
+            dense0_dormancy_masks.append(curr_mask.copy())
+          prev_intersect = curr_mask & prev_mask
+          prev_intersect_count = jnp.count_nonzero(prev_intersect)
+          prev_count = jnp.count_nonzero(prev_mask)
 
-        pre_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
-        self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask) # NOTE (ZW) merging the current dormant set into the historical set
+          if k not in self.historical_dormant_mask.keys(): # first log
+            self.historical_dormant_mask[k] = prev_mask # non-dormant entries: False
+            # self.dormant_times[k] = jnp.zeros_like(prev_mask).astype(float)
+            # self.degree_of_dormancy[k] = jnp.zeros_like(curr_mask).astype(float)
+          # self.dormant_times[k] += curr_mask.astype(float)
+          # what if we reset a neuron only if its degree_of_dormancy has reached a threshold
+          # degree_of_dormancy = self.dormant_times[k] / self.n_log_historical_overlap
+          # avg_degree_of_dormancy = degree_of_dormancy.mean()
 
-        intersected_mask = (self.historical_dormant_mask[k]) & (curr_mask)
-        intersected_count = jnp.count_nonzero(intersected_mask)
-        curr_dead_count = jnp.count_nonzero(curr_mask)
-        # hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
-        post_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
-        denominator = post_hist_dead_count # This implements the post-merging-set-as-denominator metric
-        # denominator = max(curr_dead_count, hist_dead_count) # This implements the max-pre-merging-set-as-denominator metric
+          pre_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
+          self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask) # NOTE (ZW) merging the current dormant set into the historical set
 
-        # self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask)
-        percent = (
-            (float(intersected_count) / denominator.item())
-            if denominator
+          intersected_mask = (self.historical_dormant_mask[k]) & (curr_mask)
+          intersected_count = jnp.count_nonzero(intersected_mask)
+          curr_dead_count = jnp.count_nonzero(curr_mask)
+          # hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
+          post_hist_dead_count = jnp.count_nonzero(self.historical_dormant_mask[k])
+          denominator = post_hist_dead_count # This implements the post-merging-set-as-denominator metric
+          # denominator = max(curr_dead_count, hist_dead_count) # This implements the max-pre-merging-set-as-denominator metric
+
+          # self.historical_dormant_mask[k] = (self.historical_dormant_mask[k]) | (curr_mask)
+          percent = (
+              (float(intersected_count) / denominator.item())
+              if denominator
+              else 0.0
+          )
+          prev_intersect_percent = (
+            (float(prev_intersect_count) / prev_count)
+            if prev_count
             else 0.0
-        )
-        prev_intersect_percent = (
-          (float(prev_intersect_count) / prev_count)
-          if prev_count
-          else 0.0
-        )
-        if self.redo_or_prune_massive_neurons:
-          nondead_mask = score < self.massive_neurons_threshold
-        else:
-          nondead_mask = score > self.dead_neurons_threshold
+          )
+          # log_dict[f'historical_overlap_rate/{k[:-9]}'] = float(percent) * 100.0
 
-        log_dict[f'historical_overlap_rate/{k[:-9]}'] = float(percent) * 100.0
-
+          if config['use_wandb']:
+            wandb.log({'{}_{}_historical_overlap_rate'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): percent, 'grad_step': update_step})
+            wandb.log({'{}_{}_current_historical_ratio(pre_merging)'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): (curr_dead_count / pre_hist_dead_count).item(), 'grad_step': update_step})
+            wandb.log({'{}_{}_historical_dormant_count(post_merging)'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): post_hist_dead_count.item(), 'grad_step': update_step})
+            wandb.log({'{}_{}_dead_intersected_percent'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): prev_intersect_percent, 'grad_step': update_step})
+            
+            wandb.log({'{}_{}_mean_activation'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_activation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[prev_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_activation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_nondead_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_activation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_dormant_percentage'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): float(curr_dead_count) / jnp.size(score), 'grad_step': update_step})
+          thres_idx += 1
+        # log top activations
         def top_3_elements(arr):
           # Sort the array in descending order and take the first 3 elements
-          top_3_indices = jnp.argsort(arr)[::-1][:3]
+          indices = jnp.argsort(arr)[::-1]
+          top_3_indices = indices[:3]
+          least3_indices = indices[-3:]
           top_3_values = arr[top_3_indices]
-          return top_3_values, top_3_indices
-        top3_values, top3_indices = top_3_elements(score)
-
+          least_3_values = arr[least3_indices]
+          return top_3_values, top_3_indices, least_3_values
+        top3_values, top3_indices, least3_values = top_3_elements(score)
         if config['use_wandb']:
-          wandb.log({'{}_historical_overlap_rate'.format(k[:-9]): percent, 'grad_step': update_step})
-          wandb.log({'{}_current_historical_ratio(pre_merging)'.format(k[:-9]): (curr_dead_count / pre_hist_dead_count).item(), 'grad_step': update_step})
-          wandb.log({'{}_historical_dormant_count(post_merging)'.format(k[:-9]): post_hist_dead_count.item(), 'grad_step': update_step})
-          wandb.log({'{}_dead_intersected_percent'.format(k[:-9]): prev_intersect_percent, 'grad_step': update_step})
-          
-          wandb.log({'{}_mean_activation_recycled'.format(k[:-9]): jnp.mean(activation[prev_mask]), 'grad_step': update_step})
-          wandb.log({'{}_mean_activation_nondead'.format(k[:-9]): jnp.mean(activation[nondead_mask]), 'grad_step': update_step})
-          wandb.log({'{}_mean_activation_dead'.format(k[:-9]): jnp.mean(activation[curr_mask]), 'grad_step': update_step})
           wandb.log({'{}_top1_activation'.format(k[:-9]): top3_values[0], 'grad_step': update_step})
           wandb.log({'{}_top2_activation'.format(k[:-9]): top3_values[1], 'grad_step': update_step})
           wandb.log({'{}_top3_activation'.format(k[:-9]): top3_values[2], 'grad_step': update_step})
           wandb.log({'{}_top1_idx'.format(k[:-9]): top3_indices[0], 'grad_step': update_step})
           wandb.log({'{}_top2_idx'.format(k[:-9]): top3_indices[1], 'grad_step': update_step})
           wandb.log({'{}_top3_idx'.format(k[:-9]): top3_indices[2], 'grad_step': update_step})
-          wandb.log({'layer {} dormant neuron percentage'.format(layer_count): float(curr_dead_count) / jnp.size(score), 'grad_step': update_step})
-      self.prev_neuron_score = neuron_score_dict
+          # wandb.log({'{}_least1_activation'.format(k[:-9]): least3_values[2], 'grad_step': update_step})
+          # wandb.log({'{}_least2_activation'.format(k[:-9]): least3_values[1], 'grad_step': update_step})
+          # wandb.log({'{}_least3_activation'.format(k[:-9]): least3_values[0], 'grad_step': update_step})
+          # wandb.log({'{}_least1_idx'.format(k[:-9]): least3_indices[2], 'grad_step': update_step})
+          # wandb.log({'{}_least2_idx'.format(k[:-9]): least3_indices[1], 'grad_step': update_step})
+          # wandb.log({'{}_least3_idx'.format(k[:-9]): least3_indices[0], 'grad_step': update_step})
+
+      # log weights
       if config['use_wandb']:
         q = jnp.array([0.25, 0.5, 0.75]) # quantiles
         for k in self.reset_layers:
-          param_key = 'params/' + k + '/kernel'
-          abs_param = jnp.abs(param_dict[param_key]) # (8, 8, 4, 32)(4, 4, 32, 64)(3, 3, 64, 64)(7744, 512)(512, 6)
-          wandb.log({'{}_w_mean'.format(k): abs_param.mean(), 'grad_step': update_step})
-          quantiles = jnp.quantile(abs_param, q)
-          wandb.log({'{}_w_1qt'.format(k): quantiles[0], 'grad_step': update_step})
-          wandb.log({'{}_w_2qt'.format(k): quantiles[1], 'grad_step': update_step})
-          wandb.log({'{}_w_3qt'.format(k): quantiles[2], 'grad_step': update_step})
-          bias_key = 'params/' + k + '/bias'
-          abs_bias = jnp.abs(param_dict[bias_key])
-          wandb.log({'{}_b_mean'.format(k): abs_bias.mean(), 'grad_step': update_step})
-          quantiles = jnp.quantile(abs_bias, q)
-          wandb.log({'{}_b_1qt'.format(k): quantiles[0], 'grad_step': update_step})
-          wandb.log({'{}_b_2qt'.format(k): quantiles[1], 'grad_step': update_step})
-          wandb.log({'{}_b_3qt'.format(k): quantiles[2], 'grad_step': update_step})
+          if 'Dense' in k:
+            param_key = 'params/' + k + '/kernel'
+            abs_param = jnp.abs(param_dict[param_key]) # (8, 8, 4, 32)(4, 4, 32, 64)(3, 3, 64, 64)(7744, 512)(512, 6)
+            wandb.log({'{}_w_mean'.format(k): abs_param.mean(), 'grad_step': update_step})
+            quantiles = jnp.quantile(abs_param, q)
+            wandb.log({'{}_w_1qt'.format(k): quantiles[0], 'grad_step': update_step})
+            wandb.log({'{}_w_2qt'.format(k): quantiles[1], 'grad_step': update_step})
+            wandb.log({'{}_w_3qt'.format(k): quantiles[2], 'grad_step': update_step})
+            wandb.log({'{}_top1_out_w_mean'.format(k): jnp.mean(abs_param[top3_indices[0]]), 'grad_step': update_step})
+            wandb.log({'{}_top2_out_w_mean'.format(k): jnp.mean(abs_param[top3_indices[1]]), 'grad_step': update_step})
+            wandb.log({'{}_top3_out_w_mean'.format(k): jnp.mean(abs_param[top3_indices[2]]), 'grad_step': update_step})
+            if 'Dense_1' in k:
+              for idx, dormancy_mask in enumerate(dense0_dormancy_masks):
+                wandb.log({'Dense_0_{}_dormant_out_w_mean'.format(self.dead_neurons_thresholds[idx]): jnp.mean(abs_param[dormancy_mask].mean()), 'grad_step': update_step})
+            bias_key = 'params/' + k + '/bias'
+            abs_bias = jnp.abs(param_dict[bias_key])
+            wandb.log({'{}_b_mean'.format(k): abs_bias.mean(), 'grad_step': update_step})
+            quantiles = jnp.quantile(abs_bias, q)
+            wandb.log({'{}_b_1qt'.format(k): quantiles[0], 'grad_step': update_step})
+            wandb.log({'{}_b_2qt'.format(k): quantiles[1], 'grad_step': update_step})
+            wandb.log({'{}_b_3qt'.format(k): quantiles[2], 'grad_step': update_step})
+
+      self.prev_neuron_score = neuron_score_dict
     return log_dict
 
   def _score2mask(self, activation, param, next_param, key):
     del key, param, next_param
     score = self.estimate_neuron_score(activation)
-    return score <= self.dead_neurons_threshold
-
-  def log_dead_neurons_count(self, intermediates, update_step):
-    """log dead neurons in each layer.
-
-    For conv layer we also log dead elements in the spatial dimension.
-
-    Args:
-      intermediates: intermidate activation in each layer.
-
-    Returns:
-      log_dict_elements_per_neuron
-      log_dict_neurons
-    """
-
-    def log_dict(score, score_type):
-      total_neurons, total_deadneurons = 0.0, 0.0
-      score_dict = flax.traverse_util.flatten_dict(score, sep='/')
-
-      log_dict = {}
-      layer_count = 0
-      for k, m in score_dict.items():
-        layer_count += 1
-        if 'final_layer' in k:
-          continue
-        m = m[0]
-        layer_size = float(jnp.size(m))
-        deadneurons_count = jnp.count_nonzero(m <= self.dead_neurons_threshold)
-        total_neurons += layer_size
-        total_deadneurons += deadneurons_count
-        log_dict[f'dead_{score_type}_percentage/{k[:-9]}'] = (
-            float(deadneurons_count) / layer_size
-        ) * 100.0
-        log_dict[f'dead_{score_type}_count/{k[:-9]}'] = float(deadneurons_count)
-        if config['use_wandb']:
-          wandb.log({'layer {} dormant neuron percentage'.format(layer_count): float(deadneurons_count) / layer_size, 'grad_step': update_step})
-      log_dict[f'{score_type}/total'] = total_neurons
-      log_dict[f'{score_type}/deadcount'] = float(total_deadneurons)
-      log_dict[f'dead_{score_type}_percentage'] = (
-          float(total_deadneurons) / total_neurons
-      ) * 100.0
-      if config['use_wandb']:
-        wandb.log({'overall dormant neuron percentage': float(total_deadneurons) / total_neurons, 'grad_step': update_step})
-      return log_dict
-
-    neuron_score = jax.tree_util.tree_map(self.estimate_neuron_score, intermediates)
-    log_dict_neurons = log_dict(neuron_score, 'feature')
-
-    return log_dict_neurons
+    return score <= self.ReDO_threshold
 
   def estimate_neuron_score(self, activation, is_cbp=False):
     """Calculates neuron score based on absolute value of activation.
@@ -589,6 +509,7 @@ class NeuronRecycler(BaseRecycler):
   def __init__(
       self,
       all_layers_names,
+      ReDO_threshold=0.1,
       init_method_outgoing='zero',
       weight_scaling=False,
       incoming_scale=1.0,
@@ -608,6 +529,7 @@ class NeuronRecycler(BaseRecycler):
     self.first_time_pruning = True
     self.massive_neurons_threshold = massive_neurons_threshold
     self.redo_or_prune_massive_neurons = redo_or_prune_massive_neurons
+    self.ReDO_threshold = ReDO_threshold
     # prepare a dict that has pointer to next layer give a layer name
     # this is needed because neuron recycle reinitalizes both sides
     # (incoming and outgoing weights) of a neuron and needs a point to the
@@ -633,7 +555,6 @@ class NeuronRecycler(BaseRecycler):
       self, intermediates, update_step, params
   ):
     if self.is_reset(update_step):
-      # log_dict = self.log_intersected_dead_neurons(intermediates, update_step)
       self.log_historical_dead_neuron_overlapping(intermediates, params, update_step)
       return
     else:
@@ -833,7 +754,7 @@ class NeuronRecycler(BaseRecycler):
     if self.redo_or_prune_massive_neurons:
       return score >= self.massive_neurons_threshold
     else:
-      return score <= self.dead_neurons_threshold
+      return score <= self.ReDO_threshold
 
   def create_masks(self, param_dict, activations_dict, key):
     """create the masks for recycled weights based on neurons scores.

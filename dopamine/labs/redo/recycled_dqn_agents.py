@@ -119,6 +119,8 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       network = networks.ScalableNatureDQNNetworkWithDoubleWidth
     elif network == 'nature_scaled_penultimate':
       network = networks.NatureDQNNetworkScaledPenultimate
+    elif network == 'nature_with_one_extra_ffn_and_scalable_pn_layer':
+      network = networks.NatureDQNNetworkWithOneExtraFFNandScalablePNLayer
     else:
       raise ValueError(f'Invalid network: {network}')
     super().__init__(
@@ -256,7 +258,7 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
     # # logging dead neurons.
     # self._log_stats(log_dict_neurons, update_step)
     if self.is_debugging:
-      self.weight_recycler.log_dead_neurons_statistics(
+      self.weight_recycler.maybe_log_dead_neurons_statistics(
               intermediates, update_step, online_params
           )
       # self._log_stats(log_dict_intersected, update_step)
@@ -363,7 +365,7 @@ class PrunnerDQNAgent(RecycledDQNAgent):
     # # logging dead neurons.
     # self._log_stats(log_dict_neurons, update_step)
     if self.is_debugging:
-      self.weight_recycler.log_dead_neurons_statistics(
+      self.weight_recycler.maybe_log_dead_neurons_statistics(
               intermediates, update_step, online_params
           )
       # self._log_stats(log_dict_intersected, update_step)
