@@ -415,6 +415,12 @@ class NatureDQNNetworkWithOneExtraFFNandScalablePNLayer(nn.Module):
       name = '/'.join(layer.scope.path)
       self.layer_names.append(name)
     return IdentityLayer(name=f'{layer.name}_act')(x)
+  
+  def _record_preactivations(self, x, layer):
+    if self.is_initializing():
+      name = '/'.join(layer.scope.path)
+      self.layer_names.append(name)
+    return IdentityLayer(name=f'{layer.name}_preact')(x)
 
   @nn.compact
   def __call__(self, x):
@@ -442,17 +448,20 @@ class NatureDQNNetworkWithOneExtraFFNandScalablePNLayer(nn.Module):
           kernel_init=initializer,
       )
       x = layer(x)
+      x = self._record_preactivations(x, layer)
       x = nn.relu(x)
       x = self._record_activations(x, layer)
 
     x = x.reshape((-1))  # flatten
     layer = nn.Dense(features=512, kernel_init=initializer)
     x = layer(x)
+    x = self._record_preactivations(x, layer)
     x = nn.relu(x)
     x = self._record_activations(x, layer)
     # NOTE (ZW)------------------------------------------------------------------------
     extra_layer = nn.Dense(features=_scale_width(512), kernel_init=initializer)
     x = extra_layer(x)
+    x = self._record_preactivations(x, extra_layer)
     x = nn.relu(x)
     x = self._record_activations(x, extra_layer)
     # NOTE ------------------------------------------------------------------------
@@ -460,6 +469,7 @@ class NatureDQNNetworkWithOneExtraFFNandScalablePNLayer(nn.Module):
         features=self.num_actions, kernel_init=initializer, name='final_layer'
     )
     q_values = layer(x)
+    q_values = self._record_preactivations(q_values, layer)
     q_values = self._record_activations(q_values, layer)
     return atari_lib.DQNNetworkType(q_values)
 

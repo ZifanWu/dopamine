@@ -249,17 +249,13 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
         update_step
     )
     # get intermediate activation per layer to calculate neuron score.
-    intermediates = (
-        self.get_intermediates(online_params) if is_intermediated else None
+    intermediates, preactivations = (
+        self.get_intermediates(online_params) if is_intermediated else (None, None)
     )
-    # log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
-    #     update_step, intermediates
-    # )
-    # # logging dead neurons.
-    # self._log_stats(log_dict_neurons, update_step)
+
     if self.is_debugging:
       self.weight_recycler.maybe_log_dead_neurons_statistics(
-              intermediates, update_step, online_params
+              intermediates, preactivations, update_step, online_params
           )
       # self._log_stats(log_dict_intersected, update_step)
 
@@ -286,7 +282,10 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
     batch = self._sample_batch_for_statistics()
 
     def apply_data(x):
-      filter_rep = lambda l, _: l.name is not None and 'act' in l.name
+      # filter_rep = lambda l, _: l.name is not None and 'act' in l.name
+      def filter_rep(l, _):
+        return (l.name is not None and 
+                ('act' in l.name or 'preact' in l.name))
       return self.network_def.apply(
           online_params,
           x,
@@ -295,7 +294,12 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       )
 
     _, state = jax.vmap(apply_data)(batch)
-    return state['intermediates']
+    # return state['intermediates']
+    intermediates = state['intermediates']
+    activations = {k: v for k, v in intermediates.items() if '_act' in k}
+    preactivations = {k: v for k, v in intermediates.items() if '_preact' in k}
+
+    return activations, preactivations
 
 
 # NOTE (ZW) Added
@@ -356,8 +360,8 @@ class PrunnerDQNAgent(RecycledDQNAgent):
         update_step
     )
     # get intermediate activation per layer to calculate neuron score.
-    intermediates = (
-        self.get_intermediates(online_params) if is_intermediated else None
+    intermediates, preactivations = (
+        self.get_intermediates(online_params) if is_intermediated else (None, None)
     )
     # log_dict_neurons = self.weight_recycler.maybe_log_deadneurons(
     #     update_step, intermediates
@@ -372,9 +376,9 @@ class PrunnerDQNAgent(RecycledDQNAgent):
     # NOTE------------------------------------------------------
     is_prune = self.weight_recycler.is_reset(update_step)
     if is_prune:
-      intermediates = (
+      intermediates, preactivations = (
           self.get_intermediates(online_params)
-      ) if intermediates is None else intermediates
+      ) if intermediates == (None, None) else intermediates
       # activations_score_dict = flax.traverse_util.flatten_dict(
       #     intermediates, sep='/'
       # )
