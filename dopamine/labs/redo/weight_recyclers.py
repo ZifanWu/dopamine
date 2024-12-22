@@ -21,6 +21,7 @@ import gin
 import jax
 from jax import random
 import jax.numpy as jnp
+import jax.scipy.stats as jstats
 import optax
 import wandb
 
@@ -125,6 +126,27 @@ def _get_norm_per_neuron(param, axes):
   return jnp.sqrt(jnp.sum(jnp.power(param, 2), axis=axes))
 
 
+@jax.jit
+def top_3_elements(arr: jnp.ndarray):
+  # Sort the array in descending order and take the first 3 elements
+  indices = jnp.argsort(arr)[::-1]
+  top_3_indices = indices[:3]
+  # least3_indices = indices[-3:]
+  top_3_values = arr[top_3_indices]
+  return top_3_values, top_3_indices
+
+
+@jax.jit
+def check_normality(data: jnp.ndarray):
+  mean, std = jnp.mean(data, axis=1, keepdims=True), jnp.std(data, axis=1, keepdims=True) # mean and std for each feature vector in the batch
+  empirical_quantiles = []
+  theoretical_quantiles = []
+  for i in range(9):
+    empirical_quantiles.append(jnp.mean(data <= mean + (i-4) * 0.5 * std, axis=1))
+    theoretical_quantiles.append([jstats.norm.cdf((i-4)*0.5, 0, 1)])
+  return jnp.sum(jnp.abs(jnp.array(empirical_quantiles) - jnp.array(theoretical_quantiles)))
+
+
 @gin.configurable
 class BaseRecycler:
   """Base class for weight update methods.
@@ -198,7 +220,7 @@ class BaseRecycler:
     return False
 
   def is_intermediated_required(self, update_step):
-    return True#self.is_logging_step(update_step) # TODO debugging
+    return self.is_logging_step(update_step) # TODO debugging
 
   def is_logging_step(self, step):
     return step % self.logging_period == 0
@@ -206,7 +228,7 @@ class BaseRecycler:
   def maybe_log_dead_neurons_statistics(
       self, intermediates, preactivations, update_step, params
   ):
-    if True:#self.is_logging_step(update_step): # TODO debugging
+    if self.is_logging_step(update_step): # TODO debugging
       self.log_historical_dead_neuron_overlapping(intermediates, preactivations, params, update_step)
       return
     else:
@@ -268,22 +290,29 @@ class BaseRecycler:
         prev_score, score, activation, preactivation = prev_score[0], score[0], \
                                                        activation[0], preactivation[0]
         reduce_axes = list(range(activation.ndim - 1)) # more than 2 dims when it's a CNN
-        # activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
         activation = jnp.mean(jnp.abs(activation), axis=reduce_axes)
-        preactivation = jnp.mean(preactivation, axis=reduce_axes)
+        # preactivation = jnp.mean(preactivation, axis=reduce_axes)
         prev_masks = self._compute_mask(prev_score)
         # we count the dead neurons which remains dead in the current step.
         curr_masks = self._compute_mask(score)
         curr_nondead_masks = self._compute_nondead_mask(score)
+        # import flax.linen as nn
+        # print(jnp.count_nonzero(nn.relu(preactivation) == activation), jnp.size(activation), jnp.count_nonzero(nn.relu(preactivation) == activation) == jnp.count_nonzero(jnp.maximum(preactivation, 0)==activation))
+        # print(jnp.max(jnp.abs(nn.relu(preactivation) - activation)))
+        # print(jnp.count_nonzero(score<=0), jnp.count_nonzero(activation==0), score.shape, activation.shape)
 
         if config['use_wandb'] and 'Dense' in k:
           wandb.log({'{}_mean_activation'.format(k[:-9]): jnp.mean(activation), 'grad_step': update_step})
           wandb.log({'{}_mean_preactivation'.format(k[:-9]): jnp.mean(preactivation), 'grad_step': update_step})
-          wandb.log({'{}_var_preactivation'.format(k[:-9]): jnp.var(preactivation), 'grad_step': update_step})
-          wandb.log({'{}_saturated_count'.format(k[:-9]): jnp.count_nonzero(preactivation <= 0), 'grad_step': update_step})
-          wandb.log({'{}_saturated_percentage'.format(k[:-9]): float(jnp.count_nonzero(preactivation <= 0)) / jnp.size(preactivation), 'grad_step': update_step})
+          # wandb.log({'{}_std_preactivation'.format(k[:-9]): jnp.std(preactivation), 'grad_step': update_step})
+
+          # TODO we want to check if the preactivation distribution within a layer is some Gaussian, 
+          # so we check if quantiles matches the theoretical quantiles of the Gaussian with that mean and that std
+          cdf_diff = check_normality(preactivation)
+          wandb.log({'{}_cdf_difference'.format(k[:-9]): cdf_diff, 'grad_step': update_step})
           q = jnp.array([0.25, 0.5, 0.75])
-          quantiles = jnp.quantile(preactivation, q)
+          quantiles = jnp.quantile(preactivation, q, axis=1) # (B, q.shape)
+          quantiles = jnp.mean(quantiles, axis=0)
           wandb.log({'{}_preact_1qt'.format(k[:-9]): quantiles[0], 'grad_step': update_step})
           wandb.log({'{}_preact_2qt'.format(k[:-9]): quantiles[1], 'grad_step': update_step})
           wandb.log({'{}_preact_3qt'.format(k[:-9]): quantiles[2], 'grad_step': update_step})
@@ -327,27 +356,18 @@ class BaseRecycler:
             wandb.log({'{}_{}_historical_dormant_count(post_merging)'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): post_hist_dead_count.item(), 'grad_step': update_step})
             wandb.log({'{}_{}_dead_intersected_percent'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): prev_intersect_percent, 'grad_step': update_step})
             wandb.log({'{}_{}_dormant_percentage'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): float(curr_dead_count) / jnp.size(score), 'grad_step': update_step})
-            wandb.log({'{}_{}_count_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.count_nonzero(prev_mask), 'grad_step': update_step})
-            wandb.log({'{}_{}_count_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.count_nonzero(curr_mask), 'grad_step': update_step})
 
             wandb.log({'{}_{}_mean_activation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[prev_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_activation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_nondead_mask]), 'grad_step': update_step})
             wandb.log({'{}_{}_mean_activation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(activation[curr_mask]), 'grad_step': update_step})
 
-            wandb.log({'{}_{}_mean_preactivation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[prev_mask]), 'grad_step': update_step})
-            wandb.log({'{}_{}_mean_preactivation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[curr_nondead_mask]), 'grad_step': update_step})
-            wandb.log({'{}_{}_mean_preactivation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[curr_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_preactivation_recycled'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[:, prev_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_preactivation_nondead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[:, curr_nondead_mask]), 'grad_step': update_step})
+            wandb.log({'{}_{}_mean_preactivation_dead'.format(k[:-9], self.dead_neurons_thresholds[thres_idx]): jnp.mean(preactivation[:, curr_mask]), 'grad_step': update_step})
           thres_idx += 1
         # log top activations
-        def top_3_elements(arr):
-          # Sort the array in descending order and take the first 3 elements
-          indices = jnp.argsort(arr)[::-1]
-          top_3_indices = indices[:3]
-          # least3_indices = indices[-3:]
-          top_3_values = arr[top_3_indices]
-          return top_3_values, top_3_indices
-        top3_values, top3_indices = top_3_elements(activation)
         if config['use_wandb'] and 'Dense' in k:
+          top3_values, top3_indices = top_3_elements(activation)
           wandb.log({'{}_top1_activation'.format(k[:-9]): top3_values[0], 'grad_step': update_step})
           wandb.log({'{}_top2_activation'.format(k[:-9]): top3_values[1], 'grad_step': update_step})
           wandb.log({'{}_top3_activation'.format(k[:-9]): top3_values[2], 'grad_step': update_step})
@@ -357,12 +377,12 @@ class BaseRecycler:
 
       # log weights
       if config['use_wandb']:
-        q = jnp.array([0.25, 0.5, 0.75]) # quantiles
         for k in self.reset_layers:
           if 'Dense' in k:
             param_key = 'params/' + k + '/kernel'
             abs_param = jnp.abs(param_dict[param_key]) # (8, 8, 4, 32)(4, 4, 32, 64)(3, 3, 64, 64)(7744, 512)(512, 6)
             wandb.log({'{}_w_mean'.format(k): abs_param.mean(), 'grad_step': update_step})
+            q = jnp.array([0.25, 0.5, 0.75]) # quantiles
             quantiles = jnp.quantile(abs_param, q)
             wandb.log({'{}_w_1qt'.format(k): quantiles[0], 'grad_step': update_step})
             wandb.log({'{}_w_2qt'.format(k): quantiles[1], 'grad_step': update_step})

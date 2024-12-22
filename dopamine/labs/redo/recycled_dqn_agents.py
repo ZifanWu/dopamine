@@ -284,7 +284,7 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       # filter_rep = lambda l, _: l.name is not None and 'act' in l.name
       def filter_rep(l, _):
         return (l.name is not None and 
-                ('act' in l.name or 'preact' in l.name))
+                ('_act' in l.name or '_preact' in l.name))
       return self.network_def.apply(
           online_params,
           x,
@@ -293,10 +293,20 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       )
 
     _, state = jax.vmap(apply_data)(batch)
-    # return state['intermediates']
     intermediates = state['intermediates']
     activations = {k: v for k, v in intermediates.items() if '_act' in k}
     preactivations = {k: v for k, v in intermediates.items() if '_preact' in k}
+    
+    # activations = flax.traverse_util.flatten_dict(activations, sep='/')
+    # preactivations = flax.traverse_util.flatten_dict(preactivations, sep='/')
+    # for act_k, preact_k in zip(activations.items(), preactivations.items()):
+    #   k, act = act_k
+    #   pre_k, preact = preact_k
+    #   act, preact = act[0], preact[0]
+    #   if 'Dense_0' in k:
+    #     print(k, pre_k)
+    #     import flax.linen as nn
+    #     print(jnp.count_nonzero(nn.relu(preact)==act), act.shape)
 
     return activations, preactivations
 
