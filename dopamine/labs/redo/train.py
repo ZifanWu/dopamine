@@ -51,6 +51,9 @@ flags.DEFINE_multi_string(
     '      "create_environment.game_name="Pong"").',
 )
 
+flags.DEFINE_multi_string(
+  'gin_param', None, 'Newline separated list of Gin parameter bindings.')
+
 
 FLAGS = flags.FLAGS
 

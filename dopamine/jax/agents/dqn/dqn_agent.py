@@ -49,6 +49,7 @@ def create_optimizer(
     beta2=0.999,
     eps=1.5e-4,
     centered=False,
+    weight_decay=1e-3,
 ):
   """Create an optimizer for training.
 
@@ -75,6 +76,16 @@ def create_optimizer(
         eps,
     )
     return optax.adam(learning_rate, b1=beta1, b2=beta2, eps=eps)
+  elif name == 'adamw':
+    logging.info(
+        'Creating Adam optimizer with settings lr=%f, beta1=%f, '
+        'beta2=%f, eps=%f',
+        learning_rate,
+        beta1,
+        beta2,
+        eps,
+    )
+    return optax.adamw(learning_rate, weight_decay=weight_decay, b1=beta1, b2=beta2, eps=eps)
   elif name == 'rmsprop':
     logging.info(
         'Creating RMSProp optimizer with settings lr=%f, beta2=%f, eps=%f',

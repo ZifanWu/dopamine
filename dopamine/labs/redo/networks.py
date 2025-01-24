@@ -603,10 +603,16 @@ class NatureDQNNetworkScaledPenultimate(nn.Module):
   layer_names = []
 
   def _record_activations(self, x, layer):
+    # if self.is_initializing():
+      # name = '/'.join(layer.scope.path)
+      # self.layer_names.append(name)
+    return IdentityLayer(name=f'{layer.name}_act')(x)
+  
+  def _record_preactivations(self, x, layer):
     if self.is_initializing():
       name = '/'.join(layer.scope.path)
       self.layer_names.append(name)
-    return IdentityLayer(name=f'{layer.name}_act')(x)
+    return IdentityLayer(name=f'{layer.name}_preact')(x)
 
   @nn.compact
   def __call__(self, x):
@@ -634,18 +640,86 @@ class NatureDQNNetworkScaledPenultimate(nn.Module):
           kernel_init=initializer,
       )  # NOTE (ZW) different from ScalableNatureDQNNetwork, we only scale the penultimate layer
       x = layer(x)
+      x = self._record_preactivations(x, layer)
       x = nn.relu(x)
       x = self._record_activations(x, layer)
 
     x = x.reshape((-1))  # flatten
     layer = nn.Dense(features=_scale_width(512), kernel_init=initializer) # 512*0.61  1024*0.76
     x = layer(x)
+    x = self._record_preactivations(x, layer)
     x = nn.relu(x)
     x = self._record_activations(x, layer)
     layer = nn.Dense(
         features=self.num_actions, kernel_init=initializer, name='final_layer'
     )
     q_values = layer(x)
+    q_values = self._record_preactivations(q_values, layer)
+    q_values = self._record_activations(q_values, layer)
+    return atari_lib.DQNNetworkType(q_values)
+  
+
+class NatureDQNNetworkScaledPenultimatewithLN(nn.Module):
+  """The convolutional network used to compute the agent's Q-values."""
+
+  num_actions: int
+  width: int = 1
+  layer_names = []
+
+  def _record_activations(self, x, layer):
+    # if self.is_initializing():
+      # name = '/'.join(layer.scope.path)
+      # self.layer_names.append(name)
+    return IdentityLayer(name=f'{layer.name}_act')(x)
+  
+  def _record_preactivations(self, x, layer):
+    if self.is_initializing():
+      name = '/'.join(layer.scope.path)
+      self.layer_names.append(name)
+    return IdentityLayer(name=f'{layer.name}_preact')(x)
+
+  @nn.compact
+  def __call__(self, x):
+    # We need to reset the list otherwise it would have the previous values each
+    # time we create a new network.
+    if self.is_initializing():
+      for _ in range(len(self.layer_names)):
+        self.layer_names.pop()
+
+    def _scale_width(n):
+      return int(math.ceil(n * self.width))
+
+    initializer = nn.initializers.xavier_uniform()
+    # TODO(evcu) maybe remove this
+    x = x.astype(jnp.float32) / 255.0
+    features = (32, 64, 64)
+    kernel_sizes = (8, 4, 3)
+    strides = (4, 2, 1)
+
+    for n_feature, kernel_size, stride in zip(features, kernel_sizes, strides):
+      layer = nn.Conv(
+          features=n_feature,
+          kernel_size=(kernel_size, kernel_size),
+          strides=(stride, stride),
+          kernel_init=initializer,
+      )  # NOTE (ZW) different from ScalableNatureDQNNetwork, we only scale the penultimate layer
+      x = layer(x)
+      x = self._record_preactivations(x, layer)
+      x = nn.relu(x)
+      x = self._record_activations(x, layer)
+
+    x = x.reshape((-1))  # flatten
+    layer = nn.Dense(features=_scale_width(512), kernel_init=initializer) # 512*0.61  1024*0.76
+    x = layer(x)
+    x = self._record_preactivations(x, layer)
+    x = nn.LayerNorm()(x)
+    x = nn.relu(x)
+    x = self._record_activations(x, layer)
+    layer = nn.Dense(
+        features=self.num_actions, kernel_init=initializer, name='final_layer'
+    )
+    q_values = layer(x)
+    q_values = self._record_preactivations(q_values, layer)
     q_values = self._record_activations(q_values, layer)
     return atari_lib.DQNNetworkType(q_values)
   

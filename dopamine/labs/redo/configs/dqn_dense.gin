@@ -19,25 +19,37 @@ BaseRecycler.reset_end_step = 2_500_000
 
 
 # NOTE (ZW) added
-atari_lib.create_atari_environment.game_name = 'BeamRider'
+atari_lib.create_atari_environment.game_name = 'SpaceInvaders'
 RecycledDQNAgent.is_debugging = True # log overlapping rates
 
 RecycledDQNAgent.reset_mode = 'neurons'
 create_agent_recycled.agent_name = 'dqn'
-RecycledDQNAgent.network = 'nature_scaled_penultimate' #nature_scaled_penultimate nature_with_one_extra_ffn_and_scalable_pn_layer
+RecycledDQNAgent.network = 'nature_scaled_penultimate' 
+# nature_scaled_penultimate_withLN 
+# nature_scaled_penultimate 
+# nature_with_one_extra_ffn_and_scalable_pn_layer
 RecycledDQNAgent.width = 1
+JaxDQNAgent.optimizer = 'adam'
+create_optimizer.weight_decay = 1e-3
 
 JaxDQNAgent.update_period = 4
 JaxDQNAgent.target_update_period = 8000  # agent steps
 BaseRecycler.logging_period = 20_000 # default: 20000
 BaseRecycler.dead_neurons_thresholds = [0, 0.025, 0.1]
 
+NeuronRecycler.neutralize_dormant_neurons = True
+NeuronRecycler.K = 1
+NeuronRecycler.weight_revive_eps = 0.01
+NeuronRecycler.NO_K_mass_thres = False
+NeuronRecycler.ntrlize_thres = 5
+
 NeuronRecycler.dead_neurons_thresholds = [0, 0.025, 0.1]
-NeuronRecycler.ReDO_threshold = 0.1
+NeuronRecycler.dead_thres = 0.1
+NeuronRecycler.mass_thres = 5.
 NeuronRecycler.massive_neurons_threshold = 50
 NeuronRecycler.redo_or_prune_massive_neurons = False
 
-NeuronRecycler.reset_period = 1_000 # default: 1000
+NeuronRecycler.reset_period = 10 # default: 1000
 # NeuronRecycler.reset_start_step = 1
 NeuronRecycler.reset_end_step = 1000_000_000_000
 NeuronRecycler.prune_dormant_neurons = False

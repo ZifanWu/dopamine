@@ -121,6 +121,8 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
       network = networks.NatureDQNNetworkScaledPenultimate
     elif network == 'nature_with_one_extra_ffn_and_scalable_pn_layer':
       network = networks.NatureDQNNetworkWithOneExtraFFNandScalablePNLayer
+    elif network == 'nature_scaled_penultimate_withLN':
+      network = networks.NatureDQNNetworkScaledPenultimatewithLN
     else:
       raise ValueError(f'Invalid network: {network}')
     super().__init__(
@@ -296,17 +298,6 @@ class RecycledDQNAgent(dqn_agent.JaxDQNAgent):
     intermediates = state['intermediates']
     activations = {k: v for k, v in intermediates.items() if '_act' in k}
     preactivations = {k: v for k, v in intermediates.items() if '_preact' in k}
-    
-    # activations = flax.traverse_util.flatten_dict(activations, sep='/')
-    # preactivations = flax.traverse_util.flatten_dict(preactivations, sep='/')
-    # for act_k, preact_k in zip(activations.items(), preactivations.items()):
-    #   k, act = act_k
-    #   pre_k, preact = preact_k
-    #   act, preact = act[0], preact[0]
-    #   if 'Dense_0' in k:
-    #     print(k, pre_k)
-    #     import flax.linen as nn
-    #     print(jnp.count_nonzero(nn.relu(preact)==act), act.shape)
 
     return activations, preactivations
 
